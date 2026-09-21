@@ -169,8 +169,9 @@ export const corporateNetwork: Mission = {
   unlock: {
     minimumLevel: 4,
     requiredMissionIds: ['restricted-server'],
-    // van-runner-trust needs the Advanced Scanner, so taking this contract
-    // without one would strand the operator at the pivot.
-    requiredToolIds: ['forensic-kit', 'advanced-scanner'],
+    // van-runner-trust needs the Advanced Scanner to identify. Forensic-kit
+    // was removed: it was not gated by any weakness in M7 and made the unlock
+    // too expensive relative to the credits entering the contract.
+    requiredToolIds: ['advanced-scanner'],
   },
 };

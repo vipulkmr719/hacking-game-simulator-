@@ -203,6 +203,57 @@ body {
   color: var(--error);
 }
 
+/* Mission objectives ------------------------------------------------------ */
+
+.statusbar__objectives {
+  flex: 1 1 100%;
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+
+.statusbar__objectives-title {
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.statusbar__objectives-list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.statusbar__objective {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.statusbar__objective[data-complete='yes'] {
+  opacity: 0.5;
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.statusbar__objective-mark {
+  flex: 0 0 auto;
+  width: 1em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.statusbar__objective-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
 /* View tabs --------------------------------------------------------------- */
 
 .statusbar__views {

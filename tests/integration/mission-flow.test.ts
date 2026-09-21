@@ -302,7 +302,8 @@ describe('puzzles', () => {
     run('inspect orion-vault-01');
     const out = text(run('download sealed.arc'));
     expect(out).toContain('"sealed.arc" is encrypted.');
-    expect(out).toContain('Run "solve orion-cipher <answer>" first.');
+    expect(out).toContain('The banner reads WKUHH under a shift of three');
+    expect(out).toContain('Run "solve orion-cipher <answer>" to unlock it.');
   });
 
   it('allows download once solved', () => {

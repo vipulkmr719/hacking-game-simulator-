@@ -1,11 +1,18 @@
 import { formatTable } from '../../terminal/format';
 import { info, output, system } from '../../terminal/types';
+import { resolveSession } from '../../missions/session';
 import type { CommandOutcome, CommandContext, CommandSpec } from '../types';
 
 function describeAll(context: CommandContext): CommandOutcome {
-  const rows = formatTable(
-    context.deps.registry.all.map((spec) => [spec.name, spec.summary]),
-  );
+  const session = resolveSession(context.state, context.deps);
+  const available = session?.mission.availableCommandIds ?? null;
+
+  const filtered =
+    available === null
+      ? context.deps.registry.all
+      : context.deps.registry.all.filter((spec) => available.includes(spec.id));
+
+  const rows = formatTable(filtered.map((spec) => [spec.name, spec.summary]));
 
   return {
     state: context.state,

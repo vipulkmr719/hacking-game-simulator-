@@ -56,11 +56,15 @@ export const downloadCommand: CommandSpec = {
 
     if (file.encrypted && file.puzzleId !== null) {
       if (!runtime.discovered.solvedPuzzleIds.includes(file.puzzleId)) {
+        const puzzle = session.mission.puzzles.find((p) => p.id === file.puzzleId);
         return {
           state: context.state,
           outputs: [
             error(`"${file.name}" is encrypted.`),
-            info(`Run "solve ${file.puzzleId} <answer>" first.`),
+            output(''),
+            output(`  Puzzle: ${puzzle?.prompt ?? 'unknown'}`),
+            output(''),
+            info(`Run "solve ${file.puzzleId} <answer>" to unlock it.`),
           ],
           events: [],
         };

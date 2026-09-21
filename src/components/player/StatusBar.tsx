@@ -13,6 +13,8 @@ interface StatusBarProps {
   readonly onChangeView: (view: View) => void;
   readonly muted: boolean;
   readonly onToggleMuted: () => void;
+  /** Current mission details with resolved objectives. */
+  readonly currentMission: { readonly objectives: readonly { readonly id: string; readonly description: string; readonly complete: boolean }[] } | null;
 }
 
 /**
@@ -72,6 +74,7 @@ export function StatusBar({
   onChangeView,
   muted,
   onToggleMuted,
+  currentMission,
 }: StatusBarProps) {
   const { player, activeMission } = state;
 
@@ -111,6 +114,24 @@ export function StatusBar({
           {...(threatLevel === null ? {} : { threat: threatLevel })}
         />
       </div>
+
+      {currentMission !== null && activeMission !== null && activeMission.status === 'active' && (
+        <div className="statusbar__objectives" role="region" aria-label="Current mission objectives">
+          <div className="statusbar__objectives-title">OBJECTIVES</div>
+          <div className="statusbar__objectives-list">
+            {currentMission.objectives.map((obj) => (
+              <div
+                key={obj.id}
+                className="statusbar__objective"
+                data-complete={obj.complete ? 'yes' : 'no'}
+              >
+                <span className="statusbar__objective-mark">{obj.complete ? '✓' : '○'}</span>
+                <span className="statusbar__objective-text">{obj.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="statusbar__controls">
         <div className="statusbar__views" role="tablist" aria-label="View" onKeyDown={handleTabKeys}>

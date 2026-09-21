@@ -83,6 +83,17 @@ export function App() {
           }}
           muted={muted}
           onToggleMuted={toggleMuted}
+          currentMission={
+            mission === null
+              ? null
+              : {
+                  objectives: mission.objectives.map((obj) => ({
+                    id: obj.id,
+                    description: obj.description,
+                    complete: obj.complete,
+                  })),
+                }
+          }
         />
         <main
           className="app__main"
