@@ -260,7 +260,12 @@ describe('puzzles', () => {
     ]) {
       player = grantMissionReward(player, mission.id, mission.reward).player;
     }
-    state = { ...state, player };
+    // Tools are purchase-only, and this contract needs the Decoder both to be
+    // taken and to be solved.
+    state = {
+      ...state,
+      player: { ...player, unlockedToolIds: [...player.unlockedToolIds, 'decoder'] },
+    };
     run(`start ${encryptedArchive.id}`);
     run('scan');
     run('ports orion-vault-01');

@@ -116,7 +116,7 @@ export const hiddenService: Mission = {
     xp: 220,
     credits: 450,
     reputation: 8,
-    toolIds: ['advanced-scanner'],
+    toolIds: [],
     achievementIds: [],
   },
   unlock: { minimumLevel: 1, requiredMissionIds: ['open-ports'], requiredToolIds: [] },

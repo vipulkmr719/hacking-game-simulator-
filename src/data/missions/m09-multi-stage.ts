@@ -155,12 +155,13 @@ export const multiStageOperation: Mission = {
     xp: 900,
     credits: 1900,
     reputation: 22,
-    toolIds: ['analysis-toolkit'],
+    toolIds: [],
     achievementIds: [],
   },
   unlock: {
     minimumLevel: 6,
     requiredMissionIds: ['security-ai'],
-    requiredToolIds: ['stealth-module'],
+    // sable-shift-token needs the Advanced Scanner for stage three.
+    requiredToolIds: ['stealth-module', 'advanced-scanner', 'decoder'],
   },
 };

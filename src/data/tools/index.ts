@@ -28,7 +28,8 @@ export const TOOLS: readonly GameTool[] = [
     id: 'advanced-scanner',
     name: 'Advanced Scanner',
     category: 'scanner',
-    description: 'Resolves service versions that the basic scanner reports as unidentified.',
+    description:
+      'Names the service and version behind each open port, which the Basic Scanner can only report as unidentified.',
     cost: 750,
     detectionMultiplier: 0.9,
     requiredLevel: 2,
@@ -37,7 +38,7 @@ export const TOOLS: readonly GameTool[] = [
     id: 'decoder',
     name: 'Decoder',
     category: 'decoder',
-    description: 'Required to attempt cipher puzzles on encrypted files.',
+    description: 'Required to attempt the cipher on any encrypted file.',
     cost: 900,
     detectionMultiplier: 1,
     requiredLevel: 3,
@@ -46,9 +47,10 @@ export const TOOLS: readonly GameTool[] = [
     id: 'forensic-kit',
     name: 'Forensic Kit',
     category: 'forensics',
-    description: 'Recovers log entries that a host has rotated away.',
+    description:
+      'Accredited evidence handling. Required by contracts that touch recovered material, and quiets every action while carried.',
     cost: 1200,
-    detectionMultiplier: 1,
+    detectionMultiplier: 0.85,
     requiredLevel: 4,
   },
   {
@@ -64,9 +66,10 @@ export const TOOLS: readonly GameTool[] = [
     id: 'analysis-toolkit',
     name: 'Analysis Toolkit',
     category: 'analysis',
-    description: 'Surfaces weaknesses that a plain analysis pass misses.',
+    description:
+      'Consortium-grade tradecraft. Required by the weaknesses the largest targets carry, and quiets every action while carried.',
     cost: 2000,
-    detectionMultiplier: 0.95,
+    detectionMultiplier: 0.9,
     requiredLevel: 6,
   },
 ];

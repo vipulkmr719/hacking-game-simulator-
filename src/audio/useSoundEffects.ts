@@ -3,13 +3,15 @@
  *
  * The engine reports what happened as data; this decides what that should
  * sound like. Keeping the mapping here means adding a sound never touches game
- * logic, and muting is a UI concern rather than a game state.
+ * logic.
+ *
+ * Muting is a setting, and settings live in the save file, so this hook is
+ * told whether it is muted rather than deciding for itself. One source of
+ * truth: a second storage key would be a second thing to keep in step.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { GameEvent } from '../game/engine';
 import { createSoundPlayer, type SoundName } from './synth';
-
-const MUTE_STORAGE_KEY = 'chs.muted';
 
 function soundFor(event: GameEvent): SoundName | null {
   switch (event.type) {
@@ -39,43 +41,18 @@ function soundFor(event: GameEvent): SoundName | null {
   }
 }
 
-function readStoredMute(): boolean {
-  try {
-    return globalThis.localStorage.getItem(MUTE_STORAGE_KEY) === 'true';
-  } catch {
-    // Private browsing and blocked site data both throw here; defaulting to
-    // audible is the same as a first visit.
-    return false;
-  }
-}
-
 export interface SoundController {
-  readonly muted: boolean;
-  readonly toggleMuted: () => void;
   /** Plays whatever these events call for, in order, skipping duplicates. */
   readonly playFor: (events: readonly GameEvent[]) => void;
   readonly playKeypress: () => void;
 }
 
-export function useSoundEffects(): SoundController {
-  const [muted, setMuted] = useState(readStoredMute);
+export function useSoundEffects(muted: boolean): SoundController {
   const player = useMemo(() => createSoundPlayer(), []);
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
 
   useEffect(() => player.dispose, [player]);
-
-  const toggleMuted = useCallback(() => {
-    setMuted((previous) => {
-      const next = !previous;
-      try {
-        globalThis.localStorage.setItem(MUTE_STORAGE_KEY, String(next));
-      } catch {
-        // A preference that cannot be stored is still honoured this session.
-      }
-      return next;
-    });
-  }, []);
 
   const playFor = useCallback(
     (events: readonly GameEvent[]) => {
@@ -103,5 +80,5 @@ export function useSoundEffects(): SoundController {
     }
   }, [player]);
 
-  return { muted, toggleMuted, playFor, playKeypress };
+  return { playFor, playKeypress };
 }

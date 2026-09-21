@@ -53,7 +53,15 @@ describe('prerequisites', () => {
 
   it('reports every blocker at once rather than one at a time', () => {
     const availability = evaluateAvailability(finalOperation, fresh);
-    expect(availability.blockers).toHaveLength(3);
+
+    // One per unmet requirement: the level, the prior contract, and each tool.
+    expect(availability.blockers).toHaveLength(
+      1 + finalOperation.unlock.requiredMissionIds.length + finalOperation.unlock.requiredToolIds.length,
+    );
+    expect(availability.blockers).toContain('requires level 8');
+    for (const toolId of finalOperation.unlock.requiredToolIds) {
+      expect(availability.blockers).toContain(`requires tool "${toolId}"`);
+    }
   });
 
   it('marks a finished contract completed rather than available', () => {
@@ -71,12 +79,24 @@ describe('prerequisites', () => {
     expect(open.map((mission) => mission.id)).toEqual(['first-connection']);
   });
 
-  it('forms an unbroken chain on the rewards it actually pays', () => {
-    // Walks the campaign using the real reward path, so this fails if any
-    // contract demands a level or tool the ones before it never grant.
+  it('forms an unbroken chain on the levels the rewards actually pay', () => {
+    /*
+     * Walks the campaign on the real reward path, equipping whatever each
+     * contract demands. Tools are bought rather than granted now, and whether
+     * they are affordable at the right moment is proven by the campaign
+     * suite; what this checks is the other half — that no contract asks for a
+     * level the contracts before it never reach.
+     */
     let player = fresh;
 
     for (const mission of MISSIONS) {
+      player = {
+        ...player,
+        unlockedToolIds: [
+          ...new Set([...player.unlockedToolIds, ...mission.unlock.requiredToolIds]),
+        ],
+      };
+
       const availability = evaluateAvailability(mission, player);
       expect({
         id: mission.id,

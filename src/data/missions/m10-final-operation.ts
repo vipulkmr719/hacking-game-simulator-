@@ -197,6 +197,6 @@ export const finalOperation: Mission = {
   unlock: {
     minimumLevel: 8,
     requiredMissionIds: ['multi-stage-operation'],
-    requiredToolIds: ['analysis-toolkit'],
+    requiredToolIds: ['analysis-toolkit', 'decoder'],
   },
 };

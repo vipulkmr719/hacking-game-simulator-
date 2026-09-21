@@ -163,12 +163,14 @@ export const corporateNetwork: Mission = {
     xp: 600,
     credits: 1250,
     reputation: 15,
-    toolIds: ['stealth-module'],
+    toolIds: [],
     achievementIds: [],
   },
   unlock: {
     minimumLevel: 4,
     requiredMissionIds: ['restricted-server'],
-    requiredToolIds: ['forensic-kit'],
+    // van-runner-trust needs the Advanced Scanner, so taking this contract
+    // without one would strand the operator at the pivot.
+    requiredToolIds: ['forensic-kit', 'advanced-scanner'],
   },
 };

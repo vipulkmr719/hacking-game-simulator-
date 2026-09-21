@@ -123,5 +123,10 @@ export const suspiciousLogs: Mission = {
   ],
   detectionRules: [{ commandId: 'logs', cost: 2 }],
   reward: { xp: 380, credits: 720, reputation: 11, toolIds: [], achievementIds: [] },
-  unlock: { minimumLevel: 2, requiredMissionIds: ['encrypted-archive'], requiredToolIds: [] },
+  // The manifest challenge is a cipher, and solving one needs the Decoder.
+  unlock: {
+    minimumLevel: 2,
+    requiredMissionIds: ['encrypted-archive'],
+    requiredToolIds: ['decoder'],
+  },
 };

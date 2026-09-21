@@ -21,11 +21,6 @@ beforeEach(() => {
       dispose: () => undefined,
     }),
   }));
-  try {
-    globalThis.localStorage.clear();
-  } catch {
-    // jsdom always provides storage; a throw here is not this test's concern.
-  }
 });
 
 afterEach(() => {
@@ -33,9 +28,9 @@ afterEach(() => {
   vi.resetModules();
 });
 
-async function mounted() {
+async function mounted(muted = false) {
   const { useSoundEffects: hook } = await import('./useSoundEffects');
-  return renderHook(() => hook());
+  return renderHook(() => hook(muted));
 }
 
 describe('sound mapping', () => {
@@ -92,10 +87,7 @@ describe('sound mapping', () => {
   });
 
   it('is silent while muted', async () => {
-    const { result } = await mounted();
-    act(() => {
-      result.current.toggleMuted();
-    });
+    const { result } = await mounted(true);
     act(() => {
       result.current.playFor([{ type: 'COMMAND_EXECUTED', commandId: 'scan' }]);
       result.current.playKeypress();
@@ -103,20 +95,29 @@ describe('sound mapping', () => {
     expect(played).toEqual([]);
   });
 
-  it('remembers the mute preference', async () => {
-    const first = await mounted();
+  it('is audible when not muted', async () => {
+    const { result } = await mounted(false);
     act(() => {
-      first.result.current.toggleMuted();
+      result.current.playKeypress();
     });
-    expect(first.result.current.muted).toBe(true);
-
-    vi.resetModules();
-    const second = await mounted();
-    expect(second.result.current.muted).toBe(true);
+    expect(played).toEqual(['keypress']);
   });
 
-  it('starts audible on a first visit', async () => {
-    const { result } = await mounted();
-    expect(result.current.muted).toBe(false);
+  it('follows the setting when it changes', async () => {
+    const { useSoundEffects: hook } = await import('./useSoundEffects');
+    const { result, rerender } = renderHook(({ muted }) => hook(muted), {
+      initialProps: { muted: false },
+    });
+
+    act(() => {
+      result.current.playKeypress();
+    });
+    expect(played).toEqual(['keypress']);
+
+    rerender({ muted: true });
+    act(() => {
+      result.current.playKeypress();
+    });
+    expect(played).toEqual(['keypress']);
   });
 });

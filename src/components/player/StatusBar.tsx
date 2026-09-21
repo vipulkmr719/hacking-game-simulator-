@@ -3,7 +3,7 @@ import { formatTrace } from '../../game/detection/detection';
 import type { ThreatLevel } from '../../game/detection/threat';
 import type { GameState } from '../../game/engine';
 
-type View = 'terminal' | 'progression';
+type View = 'terminal' | 'contracts' | 'progression';
 
 interface StatusBarProps {
   readonly state: GameState;
@@ -60,6 +60,7 @@ function Stat({
 
 const VIEWS: readonly { readonly id: View; readonly label: string }[] = [
   { id: 'terminal', label: 'Terminal' },
+  { id: 'contracts', label: 'Contracts' },
   { id: 'progression', label: 'Progression' },
 ];
 

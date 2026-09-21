@@ -43,13 +43,23 @@ export interface ActiveMissionView {
   readonly failureReason: string | null;
 }
 
+export interface MissionRewardView {
+  readonly xp: number;
+  readonly credits: number;
+  readonly reputation: number;
+}
+
 export interface MissionListEntry {
+  /** Position in the campaign, one-based, for display. */
+  readonly number: number;
   readonly id: string;
   readonly title: string;
   readonly organization: string;
   readonly difficulty: MissionDifficulty;
   readonly status: 'locked' | 'available' | 'completed';
+  /** Why it is locked, in the player's words. Empty when it is not. */
   readonly blockers: readonly string[];
+  readonly reward: MissionRewardView;
   readonly isActive: boolean;
 }
 
@@ -97,15 +107,21 @@ export function selectMissionList(
 ): readonly MissionListEntry[] {
   const activeId = state.activeMission?.missionId ?? null;
 
-  return deps.missions.all.map((mission) => {
+  return deps.missions.all.map((mission, index) => {
     const availability = evaluateAvailability(mission, state.player);
     return {
+      number: index + 1,
       id: mission.id,
       title: mission.title,
       organization: mission.organization,
       difficulty: mission.difficulty,
       status: availability.status,
       blockers: availability.blockers,
+      reward: {
+        xp: mission.reward.xp,
+        credits: mission.reward.credits,
+        reputation: mission.reward.reputation,
+      },
       isActive: mission.id === activeId,
     };
   });

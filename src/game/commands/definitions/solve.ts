@@ -5,6 +5,7 @@ import {
   applyDetectionDelta,
 } from '../../detection/detection';
 import { error, info, output, success, system, warning } from '../../terminal/types';
+import { DECODER_TOOL_ID } from '../../progression/progression';
 import type { CommandSpec } from '../types';
 
 /**
@@ -27,7 +28,9 @@ export const solveCommand: CommandSpec = {
   ],
   requiresActiveMission: true,
   requiredAccessLevel: 'none',
-  requiredToolId: null,
+  // The Decoder's whole stated purpose. Without this it was an unlock token
+  // that did nothing, which is the same defect as the Advanced Scanner had.
+  requiredToolId: DECODER_TOOL_ID,
   detectionCost: 0,
   run: (context) => {
     const session = resolveSession(context.state, context.deps);

@@ -121,10 +121,12 @@ export const encryptedArchive: Mission = {
     },
   ],
   detectionRules: [],
-  reward: { xp: 320, credits: 640, reputation: 10, toolIds: ['decoder'], achievementIds: [] },
+  reward: { xp: 320, credits: 640, reputation: 10, toolIds: [], achievementIds: [] },
   unlock: {
     minimumLevel: 2,
     requiredMissionIds: ['hidden-service'],
-    requiredToolIds: ['advanced-scanner'],
+    // Solving a cipher needs the Decoder, so the first contract that asks for
+    // one cannot be taken without it. Nothing here needs the Advanced Scanner.
+    requiredToolIds: ['decoder'],
   },
 };

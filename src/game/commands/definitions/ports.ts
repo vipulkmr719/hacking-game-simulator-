@@ -1,6 +1,7 @@
 import { ACTION_TRACE_COST } from '../../detection/detection';
 import { resolveSession, withSession } from '../../missions/session';
-import { resolveHost, revealPorts } from '../../simulation/discovery';
+import { ADVANCED_SCANNER_TOOL_ID, ownsTool } from '../../progression/progression';
+import { findServiceById, resolveHost, revealPorts } from '../../simulation/discovery';
 import { formatTable } from '../../terminal/format';
 import { error, info, output, success, system } from '../../terminal/types';
 import type { CommandSpec } from '../types';
@@ -49,12 +50,33 @@ export const portsCommand: CommandSpec = {
       host.ports.map((port) => port.id),
     );
 
+    /*
+     * The Advanced Scanner resolves what the basic one can only report as
+     * present. It names the service and its version in the port table, which
+     * is information — it does not record the service as identified. Formally
+     * identifying it, and surfacing whatever weaknesses it carries, still
+     * takes an `analyze` pass, so the tool saves trace by telling the operator
+     * which port is worth spending it on rather than skipping the step.
+     */
+    const advanced = ownsTool(context.state.player, ADVANCED_SCANNER_TOOL_ID);
+
+    const describeService = (serviceId: string | null): string => {
+      if (serviceId === null) {
+        return '—';
+      }
+      if (!advanced) {
+        return 'unidentified';
+      }
+      const service = findServiceById(target, serviceId);
+      return service === null ? 'unidentified' : `${service.name} ${service.version}`;
+    };
+
     const rows = [
       ['PORT', 'STATE', 'SERVICE'],
       ...host.ports.map((port) => [
         String(port.number),
         port.state,
-        port.serviceId === null ? '—' : 'unidentified',
+        describeService(port.serviceId),
       ]),
     ];
 
@@ -64,7 +86,11 @@ export const portsCommand: CommandSpec = {
         system(`PORTS  ${host.label}  ${host.address}`),
         ...formatTable(rows).map((row) => output(`  ${row}`)),
         success(`${String(host.ports.length)} port(s) enumerated.`),
-        info('Use "analyze <port>" to identify a service.'),
+        info(
+          advanced
+            ? 'Advanced Scanner resolved service versions. Use "analyze <port>" to identify one.'
+            : 'Use "analyze <port>" to identify a service.',
+        ),
       ],
       events: [],
     };

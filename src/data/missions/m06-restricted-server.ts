@@ -118,7 +118,7 @@ export const restrictedServer: Mission = {
     xp: 450,
     credits: 880,
     reputation: 12,
-    toolIds: ['forensic-kit'],
+    toolIds: [],
     achievementIds: [],
   },
   unlock: { minimumLevel: 3, requiredMissionIds: ['suspicious-logs'], requiredToolIds: ['decoder'] },

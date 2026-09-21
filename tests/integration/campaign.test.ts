@@ -43,13 +43,34 @@ function demands(mission: Mission) {
   };
 }
 
-/** A player who has finished everything before this contract. */
+/**
+ * A player who has finished everything before this contract, and bought the
+ * tools it requires.
+ *
+ * Tools are purchase-only, so the equipment a contract demands has to come out
+ * of what the earlier ones paid. Buying goes through the real `buy` command,
+ * which means this also proves the economy is solvable: if the campaign ever
+ * asks for a tool the player cannot afford by then, the contract simply will
+ * not start and the suite fails.
+ */
 function playerAt(index: number): GameState {
   let state = createInitialGameState(1234);
+
   for (const mission of MISSIONS.slice(0, index)) {
     const grant = grantMissionReward(state.player, mission.id, mission.reward);
     state = { ...state, player: grant.player };
   }
+
+  // Equipment accumulates: a player who bought the Decoder for contract four
+  // still owns it at contract nine.
+  for (const mission of MISSIONS.slice(0, index + 1)) {
+    for (const toolId of mission.unlock.requiredToolIds) {
+      if (!state.player.unlockedToolIds.includes(toolId)) {
+        state = executeCommandLine(state, `buy ${toolId}`, deps).state;
+      }
+    }
+  }
+
   return state;
 }
 
@@ -187,6 +208,44 @@ describe('campaign', () => {
       for (const id of expected) {
         expect(run.state.player.achievementIds, `${mission.id} should award ${id}`).toContain(id);
       }
+    }
+  });
+
+  it('is affordable: every required tool can be bought when it is needed', () => {
+    // Walks the campaign paying for equipment out of earnings, asserting the
+    // player is never short at the moment a contract demands a tool.
+    let state = createInitialGameState(99);
+
+    for (const mission of MISSIONS) {
+      for (const toolId of mission.unlock.requiredToolIds) {
+        if (!state.player.unlockedToolIds.includes(toolId)) {
+          const before = state.player.credits;
+          state = executeCommandLine(state, `buy ${toolId}`, deps).state;
+          expect(
+            state.player.unlockedToolIds,
+            `could not afford ${toolId} for ${mission.id}: held ${String(before)} CR at level ${String(state.player.level)}`,
+          ).toContain(toolId);
+        }
+      }
+
+      expect(state.player.credits).toBeGreaterThanOrEqual(0);
+
+      const grant = grantMissionReward(state.player, mission.id, mission.reward);
+      expect(grant.granted, `${mission.id} did not pay`).toBe(true);
+      state = { ...state, player: grant.player };
+    }
+
+    // Everything the campaign requires is owned by the end of it.
+    for (const mission of MISSIONS) {
+      for (const toolId of mission.unlock.requiredToolIds) {
+        expect(state.player.unlockedToolIds).toContain(toolId);
+      }
+    }
+  });
+
+  it('no longer hands any tool over as a contract reward', () => {
+    for (const mission of MISSIONS) {
+      expect(mission.reward.toolIds, `${mission.id} grants a tool`).toEqual([]);
     }
   });
 

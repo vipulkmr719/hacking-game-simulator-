@@ -12,6 +12,16 @@ import type { PlayerState } from './types';
 export const STARTING_CREDITS = 500;
 export const STARTING_TOOL_ID = 'basic-scanner';
 
+/**
+ * Tools the engine checks for by name.
+ *
+ * Two commands change what they report depending on what the operator owns.
+ * The ids live here rather than inline so the coupling between a tool and the
+ * command it affects is findable from one place.
+ */
+export const ADVANCED_SCANNER_TOOL_ID = 'advanced-scanner';
+export const DECODER_TOOL_ID = 'decoder';
+
 export function sanitizeCredits(credits: number): number {
   if (!Number.isFinite(credits) || credits < 0) {
     return 0;

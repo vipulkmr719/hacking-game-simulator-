@@ -273,15 +273,31 @@ describe('terminal component', () => {
 
   it('moves between views with arrow keys', () => {
     render(<App />);
-    const terminalTab = screen.getByRole('tab', { name: 'Terminal' });
+    const selected = () =>
+      screen.getAllByRole('tab').find((tab) => tab.getAttribute('aria-selected') === 'true')
+        ?.textContent;
 
-    fireEvent.keyDown(terminalTab, { key: 'ArrowRight' });
-    expect(screen.getByRole('tab', { name: 'Progression' }).getAttribute('aria-selected')).toBe(
-      'true',
-    );
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Terminal' }), { key: 'ArrowRight' });
+    expect(selected()).toBe('Contracts');
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Contracts' }), { key: 'ArrowRight' });
+    expect(selected()).toBe('Progression');
 
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Progression' }), { key: 'ArrowLeft' });
-    expect(screen.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true');
+    expect(selected()).toBe('Contracts');
+  });
+
+  it('wraps around at both ends of the tab list', () => {
+    render(<App />);
+    const selected = () =>
+      screen.getAllByRole('tab').find((tab) => tab.getAttribute('aria-selected') === 'true')
+        ?.textContent;
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Terminal' }), { key: 'ArrowLeft' });
+    expect(selected()).toBe('Progression');
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Progression' }), { key: 'ArrowRight' });
+    expect(selected()).toBe('Terminal');
   });
 
   it('keeps only the selected tab in the tab order', () => {
