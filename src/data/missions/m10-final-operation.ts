@@ -192,7 +192,7 @@ export const finalOperation: Mission = {
     credits: 3000,
     reputation: 35,
     toolIds: [],
-    achievementIds: ['consortium-breaker'],
+    achievementIds: [],
   },
   unlock: {
     minimumLevel: 8,

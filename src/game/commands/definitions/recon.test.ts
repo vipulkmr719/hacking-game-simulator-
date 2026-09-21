@@ -233,10 +233,11 @@ describe('inventory', () => {
     expect(text).toContain('Basic Scanner');
   });
 
-  it('marks the rest as locked rather than hiding them', () => {
+  it('marks the rest as locked and shows the id to buy them by', () => {
     const text = textOf(run('inventory'));
     expect(text).toContain('LOCKED');
-    expect(text).toContain('Stealth Module');
+    expect(text).toContain('stealth-module');
+    expect(text).toContain('Buy with "buy <id>".');
   });
 
   it('works through its alias and needs no session', () => {

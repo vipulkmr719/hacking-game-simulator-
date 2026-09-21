@@ -129,6 +129,291 @@ body {
   color: var(--accent);
 }
 
+/* View tabs --------------------------------------------------------------- */
+
+.statusbar__views {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.statusbar__view {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.statusbar__view:hover {
+  color: var(--text);
+}
+
+.statusbar__view[aria-selected='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.statusbar__view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Progression screen ------------------------------------------------------ */
+
+.progression {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.progression__panel {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.progression__heading {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  margin: 0 0 var(--space-3);
+  color: var(--system);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.progression__count {
+  color: var(--muted);
+}
+
+.progression__level {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.progression__level-number {
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.progression__level-meter {
+  flex: 1;
+  min-width: 0;
+}
+
+.progression__level-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.progression__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progression__bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 200ms ease-out;
+}
+
+.progression__figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+}
+
+.figure__label {
+  color: var(--muted);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+}
+
+.figure__value {
+  font-size: 1rem;
+}
+
+.progression__tools,
+.progression__contracts,
+.progression__achievements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool {
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tool[data-status='owned'] {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+}
+
+.tool__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tool__name {
+  font-size: 0.8125rem;
+}
+
+.tool__category {
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.tool__description {
+  margin: var(--space-1) 0 var(--space-2);
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.tool__foot {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tool__trace {
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.tool__cost {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.tool__owned {
+  margin-left: auto;
+  color: var(--success);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.tool__buy {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.tool__buy:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tool__buy:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.tool__buy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.contract,
+.achievement {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: 0.8125rem;
+}
+
+.contract__mark,
+.achievement__mark {
+  color: var(--muted);
+}
+
+.contract[data-state='done'] .contract__mark {
+  color: var(--success);
+}
+
+.contract[data-state='locked'] {
+  color: var(--muted);
+}
+
+.contract__client {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.achievement {
+  align-items: flex-start;
+}
+
+.achievement[data-unlocked='yes'] .achievement__mark {
+  color: var(--warning);
+}
+
+.achievement[data-unlocked='no'] {
+  color: var(--muted);
+}
+
+.achievement__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.achievement__description {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.achievement__xp {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+@media (min-width: 900px) {
+  .progression {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Mission panel ----------------------------------------------------------- */
 
 .mission {

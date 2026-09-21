@@ -64,6 +64,7 @@ describe('command registry', () => {
       'abort',
       'analyze',
       'brief',
+      'buy',
       'clear',
       'connect',
       'download',

@@ -27,4 +27,7 @@ export type GameEvent =
       readonly missionId: string;
       readonly rewarded: boolean;
     }
-  | { readonly type: 'MISSION_FAILED'; readonly missionId: string; readonly reason: string };
+  | { readonly type: 'MISSION_FAILED'; readonly missionId: string; readonly reason: string }
+  | { readonly type: 'TOOL_UNLOCKED'; readonly toolId: string; readonly purchased: boolean }
+  | { readonly type: 'ACHIEVEMENT_UNLOCKED'; readonly achievementId: string }
+  | { readonly type: 'LEVEL_REACHED'; readonly level: number };

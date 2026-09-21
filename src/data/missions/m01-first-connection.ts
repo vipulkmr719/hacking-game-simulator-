@@ -169,6 +169,6 @@ export const firstConnection: Mission = {
   requiredToolIds: ['basic-scanner'],
   puzzles: [],
   detectionRules: [],
-  reward: { xp: 120, credits: 250, reputation: 5, toolIds: [], achievementIds: ['first-contract'] },
+  reward: { xp: 120, credits: 250, reputation: 5, toolIds: [], achievementIds: [] },
   unlock: { minimumLevel: 1, requiredMissionIds: [], requiredToolIds: [] },
 };

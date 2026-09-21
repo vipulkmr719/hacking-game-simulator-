@@ -1,36 +1,16 @@
 /**
- * XP and level rules.
+ * Player figures.
  *
- * A flat threshold keeps the curve readable and the tests exact. It is a
- * balance value, not a structural choice: change XP_PER_LEVEL freely.
+ * Every total a player carries is written through this module, so the rules
+ * that no balance goes negative and no level disagrees with its XP hold
+ * wherever the numbers are touched. The curve itself lives in levels.ts.
  */
 import { EMPTY_STATISTICS } from './constants';
+import { levelForXp, sanitizeXp } from './levels';
 import type { PlayerState } from './types';
 
-export const XP_PER_LEVEL = 250;
 export const STARTING_CREDITS = 500;
-
-export function levelForXp(xp: number): number {
-  if (!Number.isFinite(xp) || xp <= 0) {
-    return 1;
-  }
-  return Math.floor(xp / XP_PER_LEVEL) + 1;
-}
-
-export function xpIntoCurrentLevel(xp: number): number {
-  return sanitizeXp(xp) % XP_PER_LEVEL;
-}
-
-export function xpUntilNextLevel(xp: number): number {
-  return XP_PER_LEVEL - xpIntoCurrentLevel(xp);
-}
-
-export function sanitizeXp(xp: number): number {
-  if (!Number.isFinite(xp) || xp < 0) {
-    return 0;
-  }
-  return Math.floor(xp);
-}
+export const STARTING_TOOL_ID = 'basic-scanner';
 
 export function sanitizeCredits(credits: number): number {
   if (!Number.isFinite(credits) || credits < 0) {
@@ -52,9 +32,70 @@ export function createInitialPlayerState(): PlayerState {
     xp: 0,
     credits: STARTING_CREDITS,
     reputation: 0,
-    unlockedToolIds: ['basic-scanner'],
+    unlockedToolIds: [STARTING_TOOL_ID],
     completedMissionIds: [],
     achievementIds: [],
     statistics: EMPTY_STATISTICS,
   };
 }
+
+/** Adds XP and brings the level into agreement with it. */
+export function awardXp(player: PlayerState, amount: number): PlayerState {
+  const xp = sanitizeXp(player.xp) + sanitizeXp(amount);
+  return { ...player, xp, level: levelForXp(xp) };
+}
+
+export function canAfford(player: PlayerState, cost: number): boolean {
+  return sanitizeCredits(player.credits) >= sanitizeCredits(cost);
+}
+
+/**
+ * Deducts credits. Refuses rather than clamping: silently charging a player
+ * less than the price would be a worse bug than the purchase failing.
+ */
+export function spendCredits(
+  player: PlayerState,
+  cost: number,
+): { player: PlayerState; spent: boolean } {
+  const price = sanitizeCredits(cost);
+  if (!canAfford(player, price)) {
+    return { player, spent: false };
+  }
+
+  return {
+    player: {
+      ...player,
+      credits: sanitizeCredits(player.credits) - price,
+      statistics: {
+        ...player.statistics,
+        creditsSpent: player.statistics.creditsSpent + price,
+      },
+    },
+    spent: true,
+  };
+}
+
+export function ownsTool(player: PlayerState, toolId: string): boolean {
+  return player.unlockedToolIds.includes(toolId);
+}
+
+export function unlockTool(player: PlayerState, toolId: string): PlayerState {
+  if (ownsTool(player, toolId)) {
+    return player;
+  }
+  return { ...player, unlockedToolIds: [...player.unlockedToolIds, toolId] };
+}
+
+export {
+  LEVEL_BASE_XP,
+  LEVEL_STEP_XP,
+  MAX_LEVEL,
+  levelForXp,
+  levelProgress,
+  sanitizeXp,
+  xpForCurrentLevel,
+  xpIntoCurrentLevel,
+  xpRequiredForLevel,
+  xpToAdvanceFrom,
+  xpUntilNextLevel,
+} from './levels';

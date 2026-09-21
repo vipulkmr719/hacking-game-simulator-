@@ -1,5 +1,9 @@
 import { formatTrace } from '../../detection/detection';
-import { XP_PER_LEVEL, xpIntoCurrentLevel, xpUntilNextLevel } from '../../progression/progression';
+import {
+  xpForCurrentLevel,
+  xpIntoCurrentLevel,
+  xpUntilNextLevel,
+} from '../../progression/progression';
 import { info, output, system } from '../../terminal/types';
 import type { CommandSpec } from '../types';
 
@@ -20,11 +24,12 @@ export const statusCommand: CommandSpec = {
       system('OPERATOR STATUS'),
       output(`  Level        ${String(player.level)}`),
       output(
-        `  XP           ${String(player.xp)} (${String(xpIntoCurrentLevel(player.xp))}/${String(XP_PER_LEVEL)} — ${String(xpUntilNextLevel(player.xp))} to next)`,
+        `  XP           ${String(player.xp)} (${String(xpIntoCurrentLevel(player.xp))}/${String(xpForCurrentLevel(player.xp))} — ${String(xpUntilNextLevel(player.xp))} to next)`,
       ),
       output(`  Credits      ${String(player.credits)}`),
       output(`  Reputation   ${String(player.reputation)}`),
       output(`  Tools        ${String(player.unlockedToolIds.length)} unlocked`),
+      output(`  Achievements ${String(player.achievementIds.length)}`),
       output(`  Missions     ${String(player.statistics.missionsCompleted)} completed`),
       output(`  Commands     ${String(player.statistics.commandsExecuted)} executed`),
     ];

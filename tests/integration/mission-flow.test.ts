@@ -137,7 +137,9 @@ describe('extraction', () => {
     expect(out).toContain('XP          +120');
     expect(out).toContain('Credits     +250');
     expect(state.activeMission?.status).toBe('completed');
-    expect(state.player.xp).toBe(120);
+    // 120 from the contract, plus the First Contract achievement it earns.
+    expect(state.player.xp).toBe(120 + 60);
+    expect(state.player.achievementIds).toContain('first-contract');
     expect(state.player.completedMissionIds).toContain('first-connection');
     expect(state.player.statistics.missionsCompleted).toBe(1);
   });
@@ -202,9 +204,16 @@ describe('mission failure', () => {
 
   it('pays nothing for a failed contract', () => {
     crankTrace();
+    const before = state.player.credits;
     run('scan');
-    expect(state.player.xp).toBe(0);
+
     expect(state.player.completedMissionIds).toEqual([]);
+    expect(state.player.credits).toBe(before);
+    expect(state.player.reputation).toBe(0);
+    // The contract pays nothing. The Persistent achievement is a separate
+    // award for the failure itself.
+    expect(state.player.xp).toBe(40);
+    expect(state.player.achievementIds).toEqual(['persistent']);
   });
 
   it('allows a retry from a clean runtime', () => {

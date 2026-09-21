@@ -3,6 +3,7 @@ import type { CommandRegistry, CommandSpec } from '../types';
 import { abortCommand } from './abort';
 import { analyzeCommand } from './analyze';
 import { briefCommand } from './brief';
+import { buyCommand } from './buy';
 import { clearCommand } from './clear';
 import { connectCommand } from './connect';
 import { downloadCommand } from './download';
@@ -29,6 +30,7 @@ export const COMMAND_SPECS: readonly CommandSpec[] = [
   clearCommand,
   statusCommand,
   inventoryCommand,
+  buyCommand,
   missionsCommand,
   startCommand,
   briefCommand,
@@ -52,6 +54,7 @@ export {
   abortCommand,
   analyzeCommand,
   briefCommand,
+  buyCommand,
   clearCommand,
   connectCommand,
   downloadCommand,

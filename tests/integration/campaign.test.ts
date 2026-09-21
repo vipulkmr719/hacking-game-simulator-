@@ -10,6 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { createGameDeps } from '../../src/data/bootstrap';
+import { ACHIEVEMENTS } from '../../src/data/achievements';
 import { MISSIONS } from '../../src/data/missions';
 import { executeCommandLine } from '../../src/game/engine';
 import { createInitialGameState } from '../../src/game/state/initial';
@@ -150,13 +151,44 @@ describe('campaign', () => {
     ({ mission, index }) => {
       const run = play(mission, index);
       const before = playerAt(index).player;
-      expect(run.state.player.xp).toBe(before.xp + mission.reward.xp);
+
+      // XP is the contract's reward plus whatever achievements the run earned,
+      // and nothing else.
+      const earned = run.state.player.achievementIds.filter(
+        (id) => !before.achievementIds.includes(id),
+      );
+      const achievementXp = earned.reduce(
+        (total, id) => total + (ACHIEVEMENTS.find((a) => a.id === id)?.xp ?? 0),
+        0,
+      );
+
+      expect(run.state.player.xp).toBe(before.xp + mission.reward.xp + achievementXp);
       expect(run.state.player.credits).toBe(before.credits + mission.reward.credits);
+      expect(run.state.player.reputation).toBe(before.reputation + mission.reward.reputation);
       for (const toolId of mission.reward.toolIds) {
         expect(run.state.player.unlockedToolIds).toContain(toolId);
       }
     },
   );
+
+  it('awards the contract achievements as their contracts close', () => {
+    for (const [index, mission] of MISSIONS.entries()) {
+      const expected = ACHIEVEMENTS.filter(
+        (achievement) =>
+          achievement.trigger.type === 'mission-completed' &&
+          achievement.trigger.missionId === mission.id,
+      ).map((achievement) => achievement.id);
+
+      if (expected.length === 0) {
+        continue;
+      }
+
+      const run = play(mission, index);
+      for (const id of expected) {
+        expect(run.state.player.achievementIds, `${mission.id} should award ${id}`).toContain(id);
+      }
+    }
+  });
 
   it('keeps the whole campaign inside the trace ceiling', () => {
     for (const [index, mission] of MISSIONS.entries()) {

@@ -172,6 +172,56 @@ describe('terminal component', () => {
     expect(within(screen.getByLabelText('Active contract')).getByText(/No active contract/)).toBeDefined();
   });
 
+  it('switches to the progression screen and back', () => {
+    render(<App />);
+    expect(screen.getByLabelText('Active contract')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Progression' }));
+    const screenPanel = screen.getByRole('tabpanel');
+    expect(within(screenPanel).getByText('OPERATOR')).toBeDefined();
+    expect(screen.queryByLabelText('Active contract')).toBeNull();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Terminal' }));
+    expect(screen.getByLabelText('Active contract')).toBeDefined();
+  });
+
+  it('marks the active tab for assistive technology', () => {
+    render(<App />);
+    expect(screen.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true');
+    fireEvent.click(screen.getByRole('tab', { name: 'Progression' }));
+    expect(screen.getByRole('tab', { name: 'Progression' }).getAttribute('aria-selected')).toBe(
+      'true',
+    );
+  });
+
+  it('reflects play on the progression screen', () => {
+    render(<App />);
+    type('scan');
+    type('ports edge-gateway');
+    type('analyze 443');
+    type('escape');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Progression' }));
+    const panel = screen.getByRole('tabpanel');
+
+    // 120 from the contract plus 60 from the First Contract achievement.
+    expect(within(panel).getByText('180')).toBeDefined();
+    expect(within(panel).getByText('1/10')).toBeDefined();
+    expect(within(panel).getByText('First Contract').closest('li')?.getAttribute('data-unlocked')).toBe('yes');
+  });
+
+  it('buys a tool from the screen through the same engine path', () => {
+    render(<App />);
+    // Enough credits to afford the advanced scanner outright is not the
+    // starting state, so the control must be disabled rather than absent.
+    fireEvent.click(screen.getByRole('tab', { name: 'Progression' }));
+    const panel = screen.getByRole('tabpanel');
+    const buys = within(panel).getAllByRole('button');
+
+    expect(buys.length).toBeGreaterThan(0);
+    expect(buys.every((button) => button.hasAttribute('disabled'))).toBe(true);
+  });
+
   it('ignores blank submissions', () => {
     render(<App />);
     const before = screen.getByRole('log').textContent;

@@ -7,6 +7,13 @@
  */
 import type { GameTool } from '../../game/progression/types';
 
+/*
+ * Level requirements sit one tier below the contract that hands each tool
+ * over, so credits buy a head start rather than nothing. Every tool is
+ * eventually granted free by the campaign; paying for one early is a choice
+ * about whether a quieter run now is worth the balance.
+ */
+
 export const TOOLS: readonly GameTool[] = [
   {
     id: 'basic-scanner',
@@ -24,7 +31,7 @@ export const TOOLS: readonly GameTool[] = [
     description: 'Resolves service versions that the basic scanner reports as unidentified.',
     cost: 750,
     detectionMultiplier: 0.9,
-    requiredLevel: 3,
+    requiredLevel: 2,
   },
   {
     id: 'decoder',
@@ -33,7 +40,7 @@ export const TOOLS: readonly GameTool[] = [
     description: 'Required to attempt cipher puzzles on encrypted files.',
     cost: 900,
     detectionMultiplier: 1,
-    requiredLevel: 4,
+    requiredLevel: 3,
   },
   {
     id: 'forensic-kit',
@@ -42,7 +49,7 @@ export const TOOLS: readonly GameTool[] = [
     description: 'Recovers log entries that a host has rotated away.',
     cost: 1200,
     detectionMultiplier: 1,
-    requiredLevel: 5,
+    requiredLevel: 4,
   },
   {
     id: 'stealth-module',
@@ -51,7 +58,7 @@ export const TOOLS: readonly GameTool[] = [
     description: 'Reduces the trace cost of every action while equipped.',
     cost: 1600,
     detectionMultiplier: 0.6,
-    requiredLevel: 6,
+    requiredLevel: 5,
   },
   {
     id: 'analysis-toolkit',
@@ -60,7 +67,7 @@ export const TOOLS: readonly GameTool[] = [
     description: 'Surfaces weaknesses that a plain analysis pass misses.',
     cost: 2000,
     detectionMultiplier: 0.95,
-    requiredLevel: 8,
+    requiredLevel: 6,
   },
 ];
 

@@ -122,6 +122,6 @@ export const suspiciousLogs: Mission = {
     },
   ],
   detectionRules: [{ commandId: 'logs', cost: 2 }],
-  reward: { xp: 380, credits: 720, reputation: 11, toolIds: [], achievementIds: ['log-reader'] },
+  reward: { xp: 380, credits: 720, reputation: 11, toolIds: [], achievementIds: [] },
   unlock: { minimumLevel: 2, requiredMissionIds: ['encrypted-archive'], requiredToolIds: [] },
 };

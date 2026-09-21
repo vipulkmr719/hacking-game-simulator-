@@ -11,6 +11,7 @@
  * objective evaluation, and mission failure.
  */
 import type { GameAction } from '../actions';
+import { evaluateAchievements } from '../achievements/engine';
 import { applyDetectionDelta, isTraceCritical, resolveDetectionCost } from '../detection/detection';
 import type { CommandSpec } from '../commands/types';
 import type { EngineDeps } from '../deps';
@@ -124,6 +125,7 @@ function executeCommandAction(
     return rejected(state, commandId, gate);
   }
 
+  const levelBeforeCommand = state.player.level;
   const events: GameEvent[] = [];
   let working: GameState = {
     ...state,
@@ -187,6 +189,27 @@ function executeCommandAction(
     nextState = { ...nextState, activeMission: failed.runtime, player: failed.player };
     outputs.push(warning('MISSION FAILED — trace reached 100%.'));
     events.push({ type: 'MISSION_FAILED', missionId: resulting.missionId, reason });
+  }
+
+  /*
+   * Achievements run last, after objectives and after the failure check, so a
+   * trigger watching a lost contract fires on the command that lost it rather
+   * than a command later.
+   */
+  const earned = evaluateAchievements(nextState.player, deps.achievements);
+  if (earned.unlocked.length > 0) {
+    nextState = { ...nextState, player: earned.player };
+    for (const achievement of earned.unlocked) {
+      outputs.push(success(`ACHIEVEMENT · ${achievement.name} (+${String(achievement.xp)} XP)`));
+      events.push({ type: 'ACHIEVEMENT_UNLOCKED', achievementId: achievement.id });
+    }
+  }
+
+  // Compared against the level on entry, so a level gained inside the command
+  // — extraction paying out, say — is still announced.
+  if (nextState.player.level > levelBeforeCommand) {
+    outputs.push(success(`LEVEL ${String(nextState.player.level)}`));
+    events.push({ type: 'LEVEL_REACHED', level: nextState.player.level });
   }
 
   return { state: nextState, outputs, events };

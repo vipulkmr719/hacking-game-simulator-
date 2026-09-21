@@ -4,6 +4,8 @@ import { createCommandRegistry } from '../commands/registry';
 import { COMMAND_SPECS, createDefaultRegistry } from '../commands/definitions';
 import type { CommandRegistry, CommandSpec } from '../commands/types';
 import type { EngineDeps } from '../deps';
+import { createAchievementCatalog } from '../achievements/catalog';
+import { ACHIEVEMENTS } from '../../data/achievements';
 import { createMissionCatalog } from '../missions/catalog';
 import { createMissionRuntimeState } from '../missions/types';
 import { firstConnection } from '../../data/missions';
@@ -17,6 +19,7 @@ const withRegistry = (registry: CommandRegistry): EngineDeps => ({
   registry,
   missions: catalog,
   tools: TOOLS,
+  achievements: createAchievementCatalog(ACHIEVEMENTS),
 });
 const deps = withRegistry(createDefaultRegistry());
 
@@ -159,7 +162,9 @@ describe('step', () => {
       expect(result.state.activeMission?.detection).toBe(100);
       expect(result.state.activeMission?.failureReason).toBe('Trace reached 100%.');
       expect(result.state.player.statistics.missionsFailed).toBe(1);
-      expect(result.outputs.at(-1)?.text).toBe('MISSION FAILED — trace reached 100%.');
+      expect(result.outputs.map((line) => line.text)).toContain(
+        'MISSION FAILED — trace reached 100%.',
+      );
       expect(result.events).toContainEqual({
         type: 'MISSION_FAILED',
         missionId: 'first-connection',

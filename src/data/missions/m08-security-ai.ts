@@ -117,7 +117,7 @@ export const securityAi: Mission = {
     { commandId: 'logs', cost: 10 },
     { commandId: 'download', cost: 18 },
   ],
-  reward: { xp: 750, credits: 1500, reputation: 18, toolIds: [], achievementIds: ['ghost'] },
+  reward: { xp: 750, credits: 1500, reputation: 18, toolIds: [], achievementIds: [] },
   unlock: {
     minimumLevel: 5,
     requiredMissionIds: ['corporate-network'],

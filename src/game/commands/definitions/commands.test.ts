@@ -5,11 +5,18 @@ import { step } from '../../state/reducer';
 import { createMissionRuntimeState } from '../../missions/types';
 import { firstConnection } from '../../../data/missions';
 import { TOOLS } from '../../../data/tools';
+import { createAchievementCatalog } from '../../achievements/catalog';
+import { ACHIEVEMENTS } from '../../../data/achievements';
 import { createMissionCatalog } from '../../missions/catalog';
 import { createDefaultRegistry } from './index';
 
 const registry = createDefaultRegistry();
-const deps = { registry, missions: createMissionCatalog([firstConnection]), tools: TOOLS };
+const deps = {
+  registry,
+  missions: createMissionCatalog([firstConnection]),
+  tools: TOOLS,
+  achievements: createAchievementCatalog(ACHIEVEMENTS),
+};
 const run = (command: string, args: readonly string[] = [], state = createInitialGameState()) =>
   step(state, executeCommand(command, args), deps);
 

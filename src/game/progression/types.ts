@@ -11,6 +11,8 @@ export interface PlayerStatistics {
   readonly missionsAttempted: number;
   readonly missionsCompleted: number;
   readonly missionsFailed: number;
+  readonly creditsSpent: number;
+  readonly toolsPurchased: number;
 }
 
 export interface PlayerState {

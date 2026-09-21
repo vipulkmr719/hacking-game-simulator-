@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialPlayerState, XP_PER_LEVEL } from '../progression/progression';
+import { createInitialPlayerState, levelForXp, xpRequiredForLevel } from '../progression/progression';
 import { EMPTY_REWARD, grantMissionReward, hasClaimedMission, normalizeReward } from './rewards';
 
 const reward = {
@@ -38,11 +38,10 @@ describe('mission rewards', () => {
   });
 
   it('recomputes level from the new xp total', () => {
-    const grant = grantMissionReward(createInitialPlayerState(), 'm', {
-      ...EMPTY_REWARD,
-      xp: XP_PER_LEVEL * 2,
-    });
+    const xp = xpRequiredForLevel(3);
+    const grant = grantMissionReward(createInitialPlayerState(), 'm', { ...EMPTY_REWARD, xp });
     expect(grant.player.level).toBe(3);
+    expect(grant.player.level).toBe(levelForXp(xp));
   });
 
   it('normalizes negative and non-finite reward values to zero', () => {

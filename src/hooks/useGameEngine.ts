@@ -12,6 +12,8 @@ import { completeCommandLine, executeCommandLine } from '../game/engine';
 import type { CompletionResult, GameEvent, GameState, TerminalLine } from '../game/engine';
 import { selectActiveMission } from '../game/missions/selectors';
 import type { ActiveMissionView } from '../game/missions/selectors';
+import { selectProgression } from '../game/progression/selectors';
+import type { ProgressionView } from '../game/progression/selectors';
 import { EMPTY_HISTORY, pushHistory, recallNext, recallPrevious } from '../game/terminal/history';
 import type { HistoryState } from '../game/terminal/history';
 import { echo, info, output, system } from '../game/terminal/types';
@@ -35,6 +37,7 @@ function clampHistory(lines: readonly TerminalLine[]): TerminalLine[] {
 export interface GameEngineBinding {
   readonly state: GameState;
   readonly mission: ActiveMissionView | null;
+  readonly progression: ProgressionView;
   readonly lines: readonly TerminalLine[];
   readonly submit: (raw: string) => void;
   readonly complete: (raw: string) => string | null;
@@ -109,8 +112,9 @@ export function useGameEngine(seed?: number): GameEngineBinding {
     return recalled.value;
   }, []);
 
-  // Derived by the engine, memoised only to avoid rebuilding it per render.
+  // Derived by the engine, memoised only to avoid rebuilding them per render.
   const mission = useMemo(() => selectActiveMission(state, deps), [state, deps]);
+  const progression = useMemo(() => selectProgression(state, deps), [state, deps]);
 
-  return { state, mission, lines, submit, complete, recallOlder, recallNewer };
+  return { state, mission, progression, lines, submit, complete, recallOlder, recallNewer };
 }

@@ -5,11 +5,13 @@
  * here is what lets `src/game` stay free of any import from `src/data`, so the
  * engine can be tested against fixtures rather than the shipped catalog.
  */
+import { createAchievementCatalog } from '../game/achievements/catalog';
 import { createDefaultRegistry } from '../game/commands/definitions';
 import type { EngineDeps } from '../game/deps';
 import { createMissionCatalog } from '../game/missions/catalog';
 import { createInitialGameState, DEFAULT_SEED } from '../game/state/initial';
 import type { GameState } from '../game/state/types';
+import { ACHIEVEMENTS } from './achievements';
 import { FIRST_MISSION, MISSIONS } from './missions';
 import { TOOLS } from './tools';
 
@@ -18,6 +20,7 @@ export function createGameDeps(): EngineDeps {
     registry: createDefaultRegistry(),
     missions: createMissionCatalog(MISSIONS),
     tools: TOOLS,
+    achievements: createAchievementCatalog(ACHIEVEMENTS),
   };
 }
 

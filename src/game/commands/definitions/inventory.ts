@@ -32,7 +32,7 @@ export const inventoryCommand: CommandSpec = {
 
     const lockedRows = formatTable(
       locked.map((tool) => [
-        tool.name,
+        tool.id,
         `${String(tool.cost)} CR`,
         `lvl ${String(tool.requiredLevel)}`,
       ]),
@@ -47,7 +47,11 @@ export const inventoryCommand: CommandSpec = {
           : unlockedRows.map((row) => output(`  ${row}`))),
         ...(locked.length === 0
           ? []
-          : [system('LOCKED'), ...lockedRows.map((row) => info(`  ${row}`))]),
+          : [
+              system('LOCKED'),
+              ...lockedRows.map((row) => info(`  ${row}`)),
+              info('Buy with "buy <id>".'),
+            ]),
       ],
       events: [],
     };

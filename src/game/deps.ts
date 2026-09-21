@@ -7,6 +7,7 @@
  * argument — without threading a new parameter through each time the engine
  * gains a lookup.
  */
+import type { AchievementCatalog } from './achievements/types';
 import type { CommandRegistry } from './commands/types';
 import type { MissionCatalog } from './missions/catalog';
 import type { GameTool } from './progression/types';
@@ -16,4 +17,5 @@ export interface EngineDeps {
   readonly missions: MissionCatalog;
   /** Tool catalog, read for detection multipliers and the inventory view. */
   readonly tools: readonly GameTool[];
+  readonly achievements: AchievementCatalog;
 }

@@ -5,4 +5,6 @@ export const EMPTY_STATISTICS: PlayerStatistics = {
   missionsAttempted: 0,
   missionsCompleted: 0,
   missionsFailed: 0,
+  creditsSpent: 0,
+  toolsPurchased: 0,
 };
