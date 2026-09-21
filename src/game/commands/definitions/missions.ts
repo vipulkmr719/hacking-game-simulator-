@@ -37,12 +37,21 @@ export const missionsCommand: CommandSpec = {
       .filter((entry) => entry.blockers.length > 0)
       .map((entry) => info(`  ${entry.id}: ${entry.blockers.join(', ')}`));
 
+    // Tools are bought, never awarded, and nothing else in the game says so.
+    // This appears only when a tool is actually what is blocking someone.
+    const blockedOnTool = entries.some((entry) =>
+      entry.blockers.some((blocker) => blocker.startsWith('requires tool')),
+    );
+
     return {
       state: context.state,
       outputs: [
         system('CONTRACTS'),
         ...rows.map((row) => output(`  ${row}`)),
         ...(blockerLines.length === 0 ? [] : [system('LOCKED BECAUSE'), ...blockerLines]),
+        ...(blockedOnTool
+          ? [info('  Tools are bought with credits — run "inventory" to see prices.')]
+          : []),
         info('Use "start <id>" to take a contract, "brief" to read the current one.'),
       ],
       events: [],

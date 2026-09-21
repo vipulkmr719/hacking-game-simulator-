@@ -25,11 +25,22 @@ export function createGameDeps(): EngineDeps {
 }
 
 /**
- * A new game with the training target loaded.
+ * A new game with no contract loaded.
  *
- * The player starts inside a session because the terminal is the only surface
- * that exists yet — there is no mission select screen to route through, and a
- * terminal with no target would be a dead end.
+ * What the application boots into. Opening the game is not the same as
+ * agreeing to a job: the player arrives at the menu, looks at their profile
+ * and the board, and takes a contract deliberately. Auto-loading one was a
+ * stopgap from when the terminal was the only screen that existed.
+ */
+export function createFreshGameState(seed: number = DEFAULT_SEED): GameState {
+  return createInitialGameState(seed);
+}
+
+/**
+ * A new game with the first contract already loaded.
+ *
+ * Kept for tests that need a session without walking the menu to get one.
+ * The application does not use it.
  */
 export function createTrainingGameState(seed: number = DEFAULT_SEED): GameState {
   return createInitialGameState(seed, FIRST_MISSION);

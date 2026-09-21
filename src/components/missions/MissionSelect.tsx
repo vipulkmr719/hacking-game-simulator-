@@ -2,8 +2,8 @@ import type { MissionListEntry } from '../../game/missions/selectors';
 
 interface MissionSelectProps {
   readonly missions: readonly MissionListEntry[];
-  /** Starting a contract goes through the engine, the same path the terminal uses. */
-  readonly onStart: (missionId: string) => void;
+  /** Opens the briefing. Starting is a deliberate second step. */
+  readonly onSelect: (missionId: string) => void;
 }
 
 const STATUS_LABEL = {
@@ -20,7 +20,7 @@ const STATUS_LABEL = {
  * `start` command rather than reaching into mission state, so there is exactly
  * one implementation of what taking a contract means.
  */
-export function MissionSelect({ missions, onStart }: MissionSelectProps) {
+export function MissionSelect({ missions, onSelect }: MissionSelectProps) {
   return (
     <div className="board">
       <h2 className="board__heading">
@@ -78,9 +78,8 @@ export function MissionSelect({ missions, onStart }: MissionSelectProps) {
                 <button
                   type="button"
                   className="contract-card__start"
-                  disabled={mission.status === 'locked'}
                   onClick={() => {
-                    onStart(mission.id);
+                    onSelect(mission.id);
                   }}
                   // A disabled control must say why rather than sit there grey.
                   title={
@@ -90,10 +89,10 @@ export function MissionSelect({ missions, onStart }: MissionSelectProps) {
                   }
                 >
                   {mission.status === 'locked'
-                    ? 'Locked'
+                    ? 'Details'
                     : mission.status === 'completed'
                       ? 'Replay'
-                      : 'Start'}
+                      : 'Brief'}
                 </button>
               )}
             </div>

@@ -60,6 +60,8 @@ export interface MissionListEntry {
   /** Why it is locked, in the player's words. Empty when it is not. */
   readonly blockers: readonly string[];
   readonly reward: MissionRewardView;
+  readonly briefing: string;
+  readonly objectiveDescriptions: readonly string[];
   readonly isActive: boolean;
 }
 
@@ -122,6 +124,8 @@ export function selectMissionList(
         credits: mission.reward.credits,
         reputation: mission.reward.reputation,
       },
+      briefing: mission.briefing,
+      objectiveDescriptions: mission.objectives.map((objective) => objective.description),
       isActive: mission.id === activeId,
     };
   });

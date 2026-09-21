@@ -7,7 +7,7 @@
  * and `step` stays pure.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createGameDeps, createTrainingGameState } from '../data/bootstrap';
+import { createFreshGameState, createGameDeps } from '../data/bootstrap';
 import { completeCommandLine, executeCommandLine } from '../game/engine';
 import type { CompletionResult, GameEvent, GameState, TerminalLine } from '../game/engine';
 import { selectActiveMission, selectMissionList } from '../game/missions/selectors';
@@ -21,6 +21,8 @@ import { EMPTY_HISTORY, pushHistory, recallNext, recallPrevious } from '../game/
 import type { HistoryState } from '../game/terminal/history';
 import { echo, info, output, system, warning } from '../game/terminal/types';
 import { loadSave, writeSave } from '../persistence/localSave';
+import { createSession, observe } from '../telemetry/recorder';
+import { PLAYTEST_ENABLED, PLAYTEST_GLOBAL_KEY } from '../telemetry/types';
 
 /**
  * Scrollback cap. The performance rules forbid unbounded DOM growth in the
@@ -31,12 +33,15 @@ export const MAX_TERMINAL_LINES = 500;
 const BOOT_LINES: readonly TerminalLine[] = [
   system('CYBER HACKER SIMULATOR  ·  v0.1.0'),
   info('Simulated environment. No real systems are contacted.'),
-  info('Type "help" to begin. Tab completes a command.'),
+  info('Type "help" for commands, or "missions" to see what is open.'),
 ];
 
 function clampHistory(lines: readonly TerminalLine[]): TerminalLine[] {
   return lines.length <= MAX_TERMINAL_LINES ? [...lines] : lines.slice(-MAX_TERMINAL_LINES);
 }
+
+/** The screens the application can show. */
+export type View = 'menu' | 'terminal' | 'contracts' | 'progression';
 
 export interface StepEvents {
   readonly id: number;
@@ -77,7 +82,7 @@ export function useGameEngine(seed?: number): GameEngineBinding {
   // restored figures rather than flashing a new game and correcting itself.
   const [loadResult] = useState<LoadResult>(() => loadSave());
   const [state, setState] = useState<GameState>(() => {
-    const fresh = createTrainingGameState(seed);
+    const fresh = createFreshGameState(seed);
     return loadResult.ok ? applySave(fresh, loadResult.save) : fresh;
   });
 
@@ -108,14 +113,35 @@ export function useGameEngine(seed?: number): GameEngineBinding {
   // does not re-render on every keystroke of unrelated state.
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Playtest telemetry, held in refs so recording never causes a render.
+  const playtestRef = useRef(createSession());
+  const sessionStartRef = useRef(performance.now());
   const historyRef = useRef(history);
   historyRef.current = history;
 
   const submit = useCallback(
     (raw: string) => {
       const trimmed = raw.trim();
-      const result = executeCommandLine(stateRef.current, raw, deps);
+      const before = stateRef.current;
+      const result = executeCommandLine(before, raw, deps);
       const cleared = result.events.some((event: GameEvent) => event.type === 'TERMINAL_CLEARED');
+
+      // Playtest telemetry. Local, session-only, and inert when the flag is
+      // off. Delete src/telemetry/ and this block to remove the feature.
+      if (PLAYTEST_ENABLED) {
+        const executed = result.events.find((event) => event.type === 'COMMAND_EXECUTED');
+        const rejected = result.events.some((event) => event.type === 'COMMAND_REJECTED');
+        playtestRef.current = observe(playtestRef.current, {
+          commandId: executed?.commandId ?? null,
+          rejected: rejected || (trimmed !== '' && executed === undefined),
+          events: result.events,
+          stateBefore: before,
+          stateAfter: result.state,
+          elapsedMs: Math.round(performance.now() - sessionStartRef.current),
+        });
+        (globalThis as Record<string, unknown>)[PLAYTEST_GLOBAL_KEY] = playtestRef.current;
+      }
 
       setState(result.state);
       setLastStep((previous) => ({ id: previous.id + 1, events: result.events }));

@@ -13,6 +13,8 @@ const entries: readonly MissionListEntry[] = [
     status: 'completed',
     blockers: [],
     reward: { xp: 120, credits: 250, reputation: 5 },
+    briefing: 'A briefing.',
+    objectiveDescriptions: ['Do the thing.'],
     isActive: false,
   },
   {
@@ -24,6 +26,8 @@ const entries: readonly MissionListEntry[] = [
     status: 'available',
     blockers: [],
     reward: { xp: 160, credits: 320, reputation: 6 },
+    briefing: 'A briefing.',
+    objectiveDescriptions: ['Do the thing.'],
     isActive: true,
   },
   {
@@ -35,6 +39,8 @@ const entries: readonly MissionListEntry[] = [
     status: 'available',
     blockers: [],
     reward: { xp: 220, credits: 450, reputation: 8 },
+    briefing: 'A briefing.',
+    objectiveDescriptions: ['Do the thing.'],
     isActive: false,
   },
   {
@@ -46,6 +52,8 @@ const entries: readonly MissionListEntry[] = [
     status: 'locked',
     blockers: ['requires level 8', 'requires tool "analysis-toolkit"'],
     reward: { xp: 1400, credits: 3000, reputation: 35 },
+    briefing: 'A briefing.',
+    objectiveDescriptions: ['Do the thing.'],
     isActive: false,
   },
 ];
@@ -54,7 +62,7 @@ const noop = () => undefined;
 
 describe('contract board', () => {
   it('shows every contract with its number', () => {
-    const { container } = render(<MissionSelect missions={entries} onStart={noop} />);
+    const { container } = render(<MissionSelect missions={entries} onSelect={noop} />);
     // Scoped to cards: unlock requirements are list items too.
     expect(container.querySelectorAll('.contract-card')).toHaveLength(4);
     expect(screen.getByText('01')).toBeDefined();
@@ -62,14 +70,14 @@ describe('contract board', () => {
   });
 
   it('shows title, organization and difficulty', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     const card = screen.getByText('Hidden Service').closest('li')!;
     expect(within(card).getByText('Helix Labs')).toBeDefined();
     expect(within(card).getByText('low')).toBeDefined();
   });
 
   it('shows the reward', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     const card = screen.getByText('Final Operation').closest('li')!;
     expect(within(card).getByText('1400')).toBeDefined();
     expect(within(card).getByText('3000')).toBeDefined();
@@ -77,51 +85,49 @@ describe('contract board', () => {
   });
 
   it('shows each of the three statuses', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     expect(screen.getByText('COMPLETED')).toBeDefined();
     expect(screen.getAllByText('AVAILABLE')).toHaveLength(2);
     expect(screen.getByText('LOCKED')).toBeDefined();
   });
 
   it('states the unlock requirements of a locked contract', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     expect(screen.getByText('requires level 8')).toBeDefined();
     expect(screen.getByText('requires tool "analysis-toolkit"')).toBeDefined();
   });
 
   it('counts completed contracts', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     expect(screen.getByText('1/4')).toBeDefined();
   });
 
-  it('starts a contract through the callback, by id', () => {
-    const onStart = vi.fn();
-    render(<MissionSelect missions={entries} onStart={onStart} />);
+  it('opens the briefing for a contract, by id', () => {
+    const onSelect = vi.fn();
+    render(<MissionSelect missions={entries} onSelect={onSelect} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
-    expect(onStart).toHaveBeenCalledWith('hidden-service');
+    fireEvent.click(screen.getByRole('button', { name: 'Brief' }));
+    expect(onSelect).toHaveBeenCalledWith('hidden-service');
   });
 
   it('offers a replay on a completed contract', () => {
-    const onStart = vi.fn();
-    render(<MissionSelect missions={entries} onStart={onStart} />);
+    const onSelect = vi.fn();
+    render(<MissionSelect missions={entries} onSelect={onSelect} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Replay' }));
-    expect(onStart).toHaveBeenCalledWith('first-connection');
+    expect(onSelect).toHaveBeenCalledWith('first-connection');
   });
 
-  it('disables a locked contract and does not start it', () => {
-    const onStart = vi.fn();
-    render(<MissionSelect missions={entries} onStart={onStart} />);
+  it('lets a locked contract be inspected, since its briefing explains the lock', () => {
+    const onSelect = vi.fn();
+    render(<MissionSelect missions={entries} onSelect={onSelect} />);
 
-    const locked = screen.getByRole('button', { name: 'Locked' });
-    expect(locked.hasAttribute('disabled')).toBe(true);
-    fireEvent.click(locked);
-    expect(onStart).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+    expect(onSelect).toHaveBeenCalledWith('final-operation');
   });
 
   it('marks the active contract instead of offering to start it again', () => {
-    render(<MissionSelect missions={entries} onStart={noop} />);
+    render(<MissionSelect missions={entries} onSelect={noop} />);
     const card = screen.getByText('Open Ports').closest('li')!;
     expect(within(card).getByText('Active contract')).toBeDefined();
     expect(within(card).queryByRole('button')).toBeNull();

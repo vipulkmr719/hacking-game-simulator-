@@ -13,7 +13,7 @@ export const firstConnection: Mission = {
   organization: 'Acme Dynamics',
   difficulty: 'trivial',
   briefing:
-    'A training contract. Map the perimeter, identify what is listening, and leave before anyone notices you were curious.',
+    'A training contract. Map the perimeter, identify what is listening, and leave before anyone notices you were curious. Every action raises your trace; at 100% the contract is lost.',
   objectives: [
     {
       id: 'map-perimeter',
