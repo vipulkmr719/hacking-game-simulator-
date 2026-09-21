@@ -70,7 +70,3 @@ export const TOOLS: readonly GameTool[] = [
     requiredLevel: 6,
   },
 ];
-
-export function findTool(id: string): GameTool | null {
-  return TOOLS.find((tool) => tool.id === id) ?? null;
-}

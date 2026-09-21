@@ -7,9 +7,9 @@
  *
  * That restriction is the whole point. If missions could carry executable
  * logic, "mission content" would become an unaudited scripting surface inside
- * a game whose core rule is that nothing executes. Both unions are handled by
- * exhaustive switches (see conditions.ts / effects.ts in Phase 3), so adding a
- * variant without handling it is a compile error rather than a runtime hole.
+ * a game whose core rule is that nothing executes. MissionCondition is
+ * interpreted by an exhaustive switch in conditions.ts, so adding a variant
+ * without handling it is a compile error rather than a runtime hole.
  */
 import type { ThreatLevel } from '../detection/threat';
 import type { MissionReward } from '../rewards/types';
@@ -33,18 +33,6 @@ export type MissionCondition =
   | { readonly type: 'detection-below'; readonly value: number }
   | { readonly type: 'objective-complete'; readonly objectiveId: string }
   | { readonly type: 'tool-unlocked'; readonly toolId: string };
-
-/** Closed set of things a mission may change. No arbitrary mutations. */
-export type MissionEffect =
-  | { readonly type: 'reveal-host'; readonly hostId: string }
-  | { readonly type: 'reveal-port'; readonly portId: string }
-  | { readonly type: 'reveal-service'; readonly serviceId: string }
-  | { readonly type: 'reveal-vulnerability'; readonly vulnerabilityId: string }
-  | { readonly type: 'reveal-file'; readonly fileId: string }
-  | { readonly type: 'set-access-level'; readonly level: AccessLevel }
-  | { readonly type: 'adjust-detection'; readonly delta: number }
-  | { readonly type: 'complete-objective'; readonly objectiveId: string }
-  | { readonly type: 'fail-mission'; readonly reason: string };
 
 export interface MissionObjective {
   readonly id: string;
@@ -141,13 +129,6 @@ export interface MissionRuntimeState {
   readonly stealthActionsUsed: number;
   /** Threat band at the end of the last command, for spotting escalation. */
   readonly threatLevel: ThreatLevel;
-  /**
-   * Objectives completed by a `complete-objective` effect rather than by their
-   * own conditions. Held separately because objective completion is derived
-   * from current state, not latched, so a forced completion needs somewhere to
-   * live that a re-evaluation will not discard.
-   */
-  readonly forcedObjectiveIds: readonly string[];
   readonly failureReason: string | null;
 }
 
@@ -165,7 +146,6 @@ export function createMissionRuntimeState(mission: Mission): MissionRuntimeState
     puzzleAttempts: {},
     stealthActionsUsed: 0,
     threatLevel: 'safe',
-    forcedObjectiveIds: [],
     failureReason: null,
   };
 }

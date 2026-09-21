@@ -60,7 +60,6 @@ describe('mission initialization', () => {
     expect(runtime.discovered.hostIds).toEqual([]);
     expect(runtime.discovered.retrievedFileIds).toEqual([]);
     expect(runtime.puzzleAttempts).toEqual({});
-    expect(runtime.forcedObjectiveIds).toEqual([]);
     expect(runtime.failureReason).toBeNull();
   });
 
@@ -104,11 +103,6 @@ describe('objective completion', () => {
     expect(isObjectiveComplete(result.runtime, 'second')).toBe(false);
   });
 
-  it('honours a forced completion from a mission effect', () => {
-    const runtime = { ...createMissionRuntimeState(chained), forcedObjectiveIds: ['first'] };
-    const result = evaluateObjectives(chained, runtime, player);
-    expect(isObjectiveComplete(result.runtime, 'first')).toBe(true);
-  });
 });
 
 describe('objective ordering', () => {

@@ -58,10 +58,6 @@ export function resolveVulnerability(
   return null;
 }
 
-export function hostOfPort(target: SimulatedTarget, portId: string): SimulatedHost | null {
-  return target.hosts.find((host) => host.ports.some((port) => port.id === portId)) ?? null;
-}
-
 export function hostOfService(target: SimulatedTarget, serviceId: string): SimulatedHost | null {
   return target.hosts.find((host) => host.services.some((s) => s.id === serviceId)) ?? null;
 }

@@ -60,29 +60,3 @@ export function evaluateAll(
   }
   return conditions.every((condition) => evaluateCondition(condition, context));
 }
-
-/** Human-readable form, used to explain what an objective is still waiting on. */
-export function describeCondition(condition: MissionCondition): string {
-  switch (condition.type) {
-    case 'host-scanned':
-      return `scan host ${condition.hostId}`;
-    case 'port-discovered':
-      return `enumerate port ${condition.portId}`;
-    case 'service-identified':
-      return `identify service ${condition.serviceId}`;
-    case 'vulnerability-found':
-      return `surface weakness ${condition.vulnerabilityId}`;
-    case 'puzzle-solved':
-      return `solve ${condition.puzzleId}`;
-    case 'file-retrieved':
-      return `retrieve ${condition.fileId}`;
-    case 'access-level-at-least':
-      return `reach ${condition.level} access`;
-    case 'detection-below':
-      return `keep trace below ${String(condition.value)}%`;
-    case 'objective-complete':
-      return `complete ${condition.objectiveId}`;
-    case 'tool-unlocked':
-      return `own ${condition.toolId}`;
-  }
-}

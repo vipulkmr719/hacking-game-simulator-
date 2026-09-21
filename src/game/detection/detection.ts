@@ -50,8 +50,6 @@ export interface DetectionProfile {
   readonly multiplier: number;
 }
 
-export const NEUTRAL_DETECTION_PROFILE: DetectionProfile = { cost: 0, multiplier: 1 };
-
 export function clampDetection(value: number): number {
   if (Number.isNaN(value)) {
     return DETECTION_MIN;

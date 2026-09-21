@@ -66,9 +66,7 @@ function evaluateOnce(
     // Each objective sees the runtime as updated by the ones before it, so a
     // chain declared in dependency order resolves in a single pass.
     const context: ConditionContext = { runtime: { ...runtime, objectives }, player };
-    const next =
-      runtime.forcedObjectiveIds.includes(objective.id) ||
-      evaluateAll(objective.completedWhen, context);
+    const next = evaluateAll(objective.completedWhen, context);
 
     if (next === current.complete) {
       continue;
