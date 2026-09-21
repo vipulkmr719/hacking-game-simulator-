@@ -6,6 +6,7 @@ interface TerminalInputProps {
   readonly onComplete: (value: string) => string | null;
   readonly onRecallOlder: () => string;
   readonly onRecallNewer: () => string;
+  readonly onKeypress: () => void;
 }
 
 /**
@@ -24,6 +25,7 @@ export function TerminalInput({
   onComplete,
   onRecallOlder,
   onRecallNewer,
+  onKeypress,
 }: TerminalInputProps) {
   const [value, setValue] = useState('');
 
@@ -74,6 +76,7 @@ export function TerminalInput({
         value={value}
         onChange={(event) => {
           setValue(event.target.value);
+          onKeypress();
         }}
         onKeyDown={handleKeyDown}
         autoComplete="off"
@@ -83,6 +86,9 @@ export function TerminalInput({
         enterKeyHint="send"
         placeholder="type a command"
       />
+      {/* Sits after the input so it trails the text; purely decorative, and
+          hidden from assistive technology. */}
+      <span className="terminal__caret" aria-hidden="true" data-idle={value === '' ? 'yes' : 'no'} />
       <button className="terminal__send" type="submit">
         Run
       </button>

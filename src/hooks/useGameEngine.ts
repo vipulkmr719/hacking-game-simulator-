@@ -34,11 +34,26 @@ function clampHistory(lines: readonly TerminalLine[]): TerminalLine[] {
   return lines.length <= MAX_TERMINAL_LINES ? [...lines] : lines.slice(-MAX_TERMINAL_LINES);
 }
 
+export interface StepEvents {
+  readonly id: number;
+  readonly events: readonly GameEvent[];
+}
+
+const NO_STEP: StepEvents = { id: 0, events: [] };
+
 export interface GameEngineBinding {
   readonly state: GameState;
   readonly mission: ActiveMissionView | null;
   readonly progression: ProgressionView;
   readonly lines: readonly TerminalLine[];
+  /**
+   * Events from the most recent command, with a monotonic id.
+   *
+   * The id is what lets a component tell "the same events again" from "these
+   * events happened again": two identical commands in a row produce equal
+   * event arrays, and an animation must replay for the second one.
+   */
+  readonly lastStep: StepEvents;
   readonly submit: (raw: string) => void;
   readonly complete: (raw: string) => string | null;
   readonly recallOlder: () => string;
@@ -50,6 +65,7 @@ export function useGameEngine(seed?: number): GameEngineBinding {
   const [state, setState] = useState<GameState>(() => createTrainingGameState(seed));
   const [lines, setLines] = useState<readonly TerminalLine[]>(BOOT_LINES);
   const [history, setHistory] = useState<HistoryState>(EMPTY_HISTORY);
+  const [lastStep, setLastStep] = useState<StepEvents>(NO_STEP);
 
   // Refs keep `submit` and the recall helpers stable, so the input component
   // does not re-render on every keystroke of unrelated state.
@@ -65,6 +81,7 @@ export function useGameEngine(seed?: number): GameEngineBinding {
       const cleared = result.events.some((event: GameEvent) => event.type === 'TERMINAL_CLEARED');
 
       setState(result.state);
+      setLastStep((previous) => ({ id: previous.id + 1, events: result.events }));
       setHistory((previous) => pushHistory(previous, trimmed));
       setLines((previous) =>
         cleared
@@ -116,5 +133,15 @@ export function useGameEngine(seed?: number): GameEngineBinding {
   const mission = useMemo(() => selectActiveMission(state, deps), [state, deps]);
   const progression = useMemo(() => selectProgression(state, deps), [state, deps]);
 
-  return { state, mission, progression, lines, submit, complete, recallOlder, recallNewer };
+  return {
+    state,
+    mission,
+    progression,
+    lines,
+    lastStep,
+    submit,
+    complete,
+    recallOlder,
+    recallNewer,
+  };
 }

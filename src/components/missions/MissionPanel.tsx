@@ -1,5 +1,44 @@
+import { useEffect, useRef, useState } from 'react';
 import { STEALTH_ACTIONS_PER_CONTRACT } from '../../game/detection/detection';
-import type { ActiveMissionView } from '../../game/missions/selectors';
+import type { ActiveMissionView, ObjectiveView } from '../../game/missions/selectors';
+
+/**
+ * An objective row that reacts the moment it is satisfied.
+ *
+ * Completion is a consequence of a command several lines up the transcript;
+ * without a cue here the player has to re-read the panel to notice.
+ */
+function Objective({ objective }: { readonly objective: ObjectiveView }) {
+  const [ticked, setTicked] = useState(false);
+  const wasComplete = useRef(objective.complete);
+
+  useEffect(() => {
+    if (objective.complete && !wasComplete.current) {
+      setTicked(true);
+      const timer = globalThis.setTimeout(() => {
+        setTicked(false);
+      }, 400);
+      wasComplete.current = objective.complete;
+      return () => {
+        globalThis.clearTimeout(timer);
+      };
+    }
+    wasComplete.current = objective.complete;
+    return undefined;
+  }, [objective.complete]);
+
+  return (
+    <li className="mission__objective" data-complete={objective.complete ? 'yes' : 'no'}>
+      <span className="mission__check" aria-hidden="true" data-tick={ticked ? 'yes' : undefined}>
+        {objective.complete ? '[x]' : '[ ]'}
+      </span>
+      <span className="mission__objective-text">
+        {objective.description}
+        {objective.optional && <span className="mission__bonus"> bonus</span>}
+      </span>
+    </li>
+  );
+}
 
 interface MissionPanelProps {
   readonly mission: ActiveMissionView | null;
@@ -28,7 +67,14 @@ export function MissionPanel({ mission, onRetry }: MissionPanelProps) {
   const done = mission.objectives.filter((objective) => objective.complete).length;
 
   return (
-    <aside className="mission" aria-label="Active contract" data-threat={mission.threatLevel}>
+    <aside
+      // Keyed on the contract: taking a new one remounts the panel, which is
+      // what plays the enter animation and makes the switch legible.
+      key={mission.id}
+      className="mission"
+      aria-label="Active contract"
+      data-threat={mission.threatLevel}
+    >
       <div className="mission__header">
         <h2 className="mission__title">{mission.title}</h2>
         <p className="mission__client">
@@ -79,19 +125,7 @@ export function MissionPanel({ mission, onRetry }: MissionPanelProps) {
         </h3>
         <ul className="mission__list">
           {mission.objectives.map((objective) => (
-            <li
-              key={objective.id}
-              className="mission__objective"
-              data-complete={objective.complete ? 'yes' : 'no'}
-            >
-              <span className="mission__check" aria-hidden="true">
-                {objective.complete ? '[x]' : '[ ]'}
-              </span>
-              <span className="mission__objective-text">
-                {objective.description}
-                {objective.optional && <span className="mission__bonus"> bonus</span>}
-              </span>
-            </li>
+            <Objective key={objective.id} objective={objective} />
           ))}
         </ul>
       </section>

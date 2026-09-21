@@ -252,10 +252,63 @@ describe('terminal component', () => {
 
   it('exposes no control that does nothing', () => {
     render(<App />);
-    // Phase 1 ships exactly one button: the touch submit affordance. Any other
-    // control appearing here would be a placeholder, which the UI rules forbid.
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(1);
-    expect(buttons[0]?.getAttribute('type')).toBe('submit');
+    // Every button on the terminal view, named. A control appearing here that
+    // is not in this list is a placeholder, which the UI rules forbid.
+    const names = screen
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('aria-label') ?? button.textContent.trim());
+
+    expect(names.sort()).toEqual(['Mute sound effects', 'Run']);
+  });
+
+  it('toggles sound and says which state it is in', () => {
+    render(<App />);
+    const mute = screen.getByRole('button', { name: 'Mute sound effects' });
+    expect(mute.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(mute);
+    const unmute = screen.getByRole('button', { name: 'Unmute sound effects' });
+    expect(unmute.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('moves between views with arrow keys', () => {
+    render(<App />);
+    const terminalTab = screen.getByRole('tab', { name: 'Terminal' });
+
+    fireEvent.keyDown(terminalTab, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'Progression' }).getAttribute('aria-selected')).toBe(
+      'true',
+    );
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Progression' }), { key: 'ArrowLeft' });
+    expect(screen.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('keeps only the selected tab in the tab order', () => {
+    render(<App />);
+    expect(screen.getByRole('tab', { name: 'Terminal' }).getAttribute('tabindex')).toBe('0');
+    expect(screen.getByRole('tab', { name: 'Progression' }).getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('animates only the lines the last command produced', () => {
+    render(<App />);
+    type('help');
+    const entering = screen
+      .getByRole('log')
+      .querySelectorAll('.terminal__line[data-enter="yes"]');
+
+    // The boot banner is already on screen; only the new output enters.
+    expect(entering.length).toBeGreaterThan(0);
+    expect(entering.length).toBeLessThan(screen.getByRole('log').children.length);
+  });
+
+  it('focuses the input when the scrollback is tapped', () => {
+    render(<App />);
+    const input = screen.getByLabelText('Terminal command');
+    input.blur();
+    expect(document.activeElement).not.toBe(input);
+
+    fireEvent.pointerUp(screen.getByRole('log').parentElement!);
+    expect(document.activeElement).toBe(input);
   });
 });

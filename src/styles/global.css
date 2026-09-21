@@ -7,27 +7,81 @@
  */
 
 :root {
+  /* Palette ---------------------------------------------------------------
+     Muted rather than neon. Players read this screen continuously, so colour
+     carries meaning — error, warning, success, system — instead of decoration.
+     Every foreground below clears 4.5:1 against --panel. */
   --bg: #0b0e13;
   --panel: #11151c;
-  --panel-raised: #151a23;
+  --panel-raised: #161b24;
   --border: #1e242e;
+  --border-strong: #2a323e;
   --text: #c9d1d9;
-  --muted: #7d8590;
+  --muted: #8b949e;
   --accent: #4ec9b0;
   --success: #7ec699;
   --warning: #d7ba7d;
-  --error: #e06c75;
-  --system: #61afef;
+  --error: #e88b93;
+  --system: #79b8f3;
 
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  /* Type ------------------------------------------------------------------
+     One family throughout: this is a terminal, and a second typeface would be
+     decoration. No webfont — a remote font is a network request, and this game
+     makes none. */
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --text-2xs: 0.625rem;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.25rem;
+  --text-xl: 2rem;
+
+  --leading-tight: 1.35;
+  --leading-base: 1.55;
+  --tracking-wide: 0.08em;
+  --tracking-wider: 0.14em;
+
+  /* Space ---------------------------------------------------------------- */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-sm: 4px;
   --radius: 6px;
   --touch-target: 44px;
 
+  /* Motion ----------------------------------------------------------------
+     Durations are tokens so reduced-motion can collapse them in one place
+     rather than every animation needing its own override. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.5, 0, 0.3, 1);
+  --dur-fast: 90ms;
+  --dur-base: 160ms;
+  --dur-slow: 320ms;
+
   color-scheme: dark;
+}
+
+/*
+ * Reduced motion.
+ *
+ * Durations collapse to effectively zero rather than animations being removed,
+ * so every element still reaches its final state and nothing depends on an
+ * animation having run. The blanket override below catches anything that
+ * hard-codes a duration.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+  }
 }
 
 * {
@@ -46,8 +100,12 @@ body {
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 14px;
-  line-height: 1.55;
+  line-height: var(--leading-base);
   -webkit-text-size-adjust: 100%;
+  /* Digits that change in place — meters, counters, XP — must not reflow the
+     text around them on every update. */
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -67,6 +125,7 @@ body {
 }
 
 .app__main {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -480,14 +539,18 @@ body {
 .mission__meters {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-5);
   align-items: flex-end;
+  justify-content: flex-start;
   margin-bottom: var(--space-3);
 }
 
 .mission__meter {
-  flex: 1 1 160px;
+  flex: 1 1 200px;
   min-width: 0;
+  /* In the single-column layout the panel is as wide as the page; without a
+     cap the meter stretches and strands the facts at the far edge. */
+  max-width: 480px;
 }
 
 .mission__meter-label {
@@ -814,13 +877,408 @@ body {
   }
 }
 
+
+
+/* Motion ------------------------------------------------------------------
+ *
+ * Every animation here answers a question the player would otherwise have to
+ * work out: what just arrived, what changed, what is about to go wrong. None
+ * of them delays information — content is in the DOM at full opacity within a
+ * frame or two, and under reduced motion within one.
+ */
+
+@keyframes line-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes value-bump {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Used only at CRITICAL: the one state where a glance must register danger. */
+@keyframes threat-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes objective-tick {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Polish layer ------------------------------------------------------------
+ *
+ * Typography, spacing and the animations declared above, applied. Nothing
+ * here changes what the interface does.
+ */
+
+/* Type scale -------------------------------------------------------------- */
+
+.statusbar__title {
+  font-size: var(--text-base);
+  letter-spacing: var(--tracking-wider);
+}
+
+.statusbar__subtitle,
+.statusbar__label,
+.figure__label {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+}
+
+.mission__section-title,
+.progression__heading,
+.mission__meter-label,
+.mission__facts dt {
+  letter-spacing: var(--tracking-wider);
+}
+
+.mission__title {
+  font-size: var(--text-md);
+  letter-spacing: 0.02em;
+}
+
+.terminal__line--system {
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Terminal ---------------------------------------------------------------- */
+
+.terminal__scroll {
+  /* The whole panel is a tap target for focusing the input; the caret would
+     otherwise suggest the text itself is editable. */
+  cursor: text;
+}
+
+.terminal__line[data-enter='yes'] {
+  animation: line-in var(--dur-base) var(--ease-out) both;
+}
+
+.terminal__line--error,
+.terminal__line--warning {
+  /* Errors and warnings get a rule in the gutter so they are findable when
+     scrolling back through a long transcript, not only when they arrive. */
+  padding-left: var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  border-left: 2px solid currentColor;
+}
+
+.terminal__caret {
+  width: 7px;
+  height: 1em;
+  flex: 0 0 auto;
+  background: var(--accent);
+  animation: caret-blink 1.1s steps(1, end) infinite;
+}
+
+.terminal__caret[data-idle='no'] {
+  /* While typing, the native caret is already showing position. */
+  opacity: 0;
+  animation: none;
+}
+
+.terminal__input-row:not(:focus-within) .terminal__caret {
+  opacity: 0.25;
+  animation: none;
+}
+
+.terminal__input-row {
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* Mission panel ----------------------------------------------------------- */
+
+.mission {
+  animation: panel-in var(--dur-slow) var(--ease-out) both;
+}
+
+.mission__bar-fill {
+  transition: width var(--dur-slow) var(--ease-out), background-color var(--dur-base) linear;
+}
+
+.mission[data-threat='critical'] .mission__threat,
+.mission[data-threat='detected'] .mission__threat {
+  animation: threat-pulse 1.4s var(--ease-in-out) infinite;
+}
+
+.mission__check[data-tick='yes'] {
+  animation: objective-tick var(--dur-slow) var(--ease-out);
+  display: inline-block;
+}
+
+.mission__objective-text {
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+/* Value changes ----------------------------------------------------------- */
+
+.statusbar__value[data-bump='yes'] {
+  animation: value-bump var(--dur-slow) var(--ease-out);
+  display: inline-block;
+}
+
+/* Event overlay ----------------------------------------------------------- */
+
+.overlay {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  width: min(100% - var(--space-5), 420px);
+  pointer-events: none;
+}
+
+.overlay__banner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel-raised);
+  text-align: center;
+  animation: overlay-in var(--dur-base) var(--ease-out) both;
+}
+
+.overlay__banner[data-tone='good'] {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+}
+
+.overlay__banner[data-tone='warn'] {
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+}
+
+.overlay__banner[data-tone='bad'] {
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+}
+
+.overlay__headline {
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-wider);
+}
+
+.overlay__banner[data-tone='good'] .overlay__headline {
+  color: var(--success);
+}
+
+.overlay__banner[data-tone='warn'] .overlay__headline {
+  color: var(--warning);
+}
+
+.overlay__banner[data-tone='bad'] .overlay__headline {
+  color: var(--error);
+}
+
+.overlay__detail {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* Controls ---------------------------------------------------------------- */
+
+.statusbar__controls {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.statusbar__mute {
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.statusbar__mute:hover {
+  color: var(--text);
+}
+
+.statusbar__mute[aria-pressed='true'] {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.statusbar__mute:focus-visible,
+.statusbar__view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Every pressable control acknowledges the press. On touch there is no hover
+   state to rely on, so this is the only confirmation a tap registered. */
+.statusbar__view:active,
+.statusbar__mute:active,
+.terminal__send:active,
+.tool__buy:not(:disabled):active,
+.mission__retry:active {
+  transform: translateY(1px);
+}
+
+.statusbar__view,
+.terminal__send,
+.tool__buy,
+.mission__retry {
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+/* Progression ------------------------------------------------------------- */
+
+.progression__panel {
+  animation: panel-in var(--dur-base) var(--ease-out) both;
+}
+
+.progression__bar-fill {
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.tool {
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.achievement[data-unlocked='yes'] .achievement__mark {
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+/* Crash screen ------------------------------------------------------------ */
+
+.crash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  max-width: 44ch;
+  margin: var(--space-6) auto;
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, var(--border));
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.crash__title {
+  margin: 0;
+  color: var(--error);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-wider);
+}
+
+.crash__body {
+  margin: 0;
+  line-height: var(--leading-base);
+}
+
+.crash__detail {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.crash__action {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Reduced motion ----------------------------------------------------------
+ *
+ * The duration tokens above already collapse. This removes the looping and
+ * decorative animations outright, which no duration can make acceptable for
+ * someone who asked for stillness. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .terminal__caret,
+  .mission[data-threat='critical'] .mission__threat,
+  .mission[data-threat='detected'] .mission__threat {
+    animation: none !important;
+    opacity: 1;
   }
 }
