@@ -1,17 +1,20 @@
+import { STEALTH_ACTIONS_PER_CONTRACT } from '../../game/detection/detection';
 import type { ActiveMissionView } from '../../game/missions/selectors';
 
 interface MissionPanelProps {
   readonly mission: ActiveMissionView | null;
+  /** Retrying routes through the engine, the same path the terminal uses. */
+  readonly onRetry: () => void;
 }
 
 /**
- * Renders the active contract.
+ * Renders the active contract and its threat state.
  *
- * Presentation only. Every fact here — whether an objective is done, whether
- * extraction is available, how many remain — is computed by the engine's
- * selectors, so no mission rule is duplicated in the component tree.
+ * Presentation only. The band, its wording, whether extraction is available
+ * and how many stealth actions remain are all computed by the engine's
+ * selectors, so no detection rule is duplicated in the component tree.
  */
-export function MissionPanel({ mission }: MissionPanelProps) {
+export function MissionPanel({ mission, onRetry }: MissionPanelProps) {
   if (mission === null) {
     return (
       <aside className="mission mission--empty" aria-label="Active contract">
@@ -25,7 +28,7 @@ export function MissionPanel({ mission }: MissionPanelProps) {
   const done = mission.objectives.filter((objective) => objective.complete).length;
 
   return (
-    <aside className="mission" aria-label="Active contract">
+    <aside className="mission" aria-label="Active contract" data-threat={mission.threatLevel}>
       <div className="mission__header">
         <h2 className="mission__title">{mission.title}</h2>
         <p className="mission__client">
@@ -36,28 +39,32 @@ export function MissionPanel({ mission }: MissionPanelProps) {
       <div className="mission__meters">
         <div className="mission__meter">
           <div className="mission__meter-label">
-            <span>TRACE</span>
-            <span>{Math.round(mission.detection)}%</span>
+            <span className="mission__threat">{mission.threatLabel}</span>
+            <span>{mission.detection}%</span>
           </div>
           <div
             className="mission__bar"
             role="progressbar"
             aria-label="Trace"
-            aria-valuenow={Math.round(mission.detection)}
+            aria-valuenow={mission.detection}
             aria-valuemin={0}
             aria-valuemax={100}
+            aria-valuetext={`${String(mission.detection)} percent, ${mission.threatLabel}`}
           >
-            <div
-              className="mission__bar-fill"
-              data-level={mission.detection >= 80 ? 'high' : mission.detection >= 50 ? 'mid' : 'low'}
-              style={{ width: `${String(Math.min(100, mission.detection))}%` }}
-            />
+            <div className="mission__bar-fill" style={{ width: `${String(mission.detection)}%` }} />
           </div>
+          <p className="mission__threat-note">{mission.threatDescription}</p>
         </div>
         <dl className="mission__facts">
           <div>
             <dt>ACCESS</dt>
             <dd>{mission.accessLevel}</dd>
+          </div>
+          <div>
+            <dt>STEALTH</dt>
+            <dd>
+              {mission.stealthActionsLeft}/{STEALTH_ACTIONS_PER_CONTRACT}
+            </dd>
           </div>
           <div>
             <dt>STATE</dt>
@@ -89,10 +96,15 @@ export function MissionPanel({ mission }: MissionPanelProps) {
         </ul>
       </section>
 
-      {mission.status === 'failed' ? (
-        <p className="mission__note mission__note--fail">
-          Failed — {mission.failureReason ?? 'unknown reason'}
-        </p>
+      {mission.failed ? (
+        <div className="mission__failure">
+          <p className="mission__note mission__note--fail">
+            MISSION FAILED — {mission.failureReason ?? 'unknown reason'}
+          </p>
+          <button type="button" className="mission__retry" onClick={onRetry}>
+            Retry contract
+          </button>
+        </div>
       ) : mission.readyToExtract ? (
         <p className="mission__note mission__note--ready">
           All objectives met. Run <code>escape</code>.

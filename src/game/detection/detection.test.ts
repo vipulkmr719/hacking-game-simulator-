@@ -34,14 +34,28 @@ describe('detection meter', () => {
     expect(applyDetectionDelta(40, Number.NEGATIVE_INFINITY)).toBe(DETECTION_MIN);
   });
 
-  it('reports critical only at the maximum', () => {
-    expect(isTraceCritical(99.9)).toBe(false);
+  it('reports critical at the maximum', () => {
+    expect(isTraceCritical(99)).toBe(false);
     expect(isTraceCritical(DETECTION_MAX)).toBe(true);
     expect(isTraceCritical(150)).toBe(true);
   });
 
+  it('treats a value that would display as 100 as critical', () => {
+    // The meter is integral, so 99.9 cannot exist in state. If it is handed in
+    // anyway it must not display as 100% while the run continues.
+    expect(isTraceCritical(99.9)).toBe(true);
+  });
+
+  it('keeps the meter on whole numbers', () => {
+    expect(clampDetection(42.4)).toBe(42);
+    expect(clampDetection(42.5)).toBe(43);
+    expect(applyDetectionDelta(10, 1.2)).toBe(11);
+    expect(Number.isInteger(applyDetectionDelta(0, 7.7))).toBe(true);
+  });
+
   it('resolves cost through the tool multiplier and never returns negative', () => {
     expect(resolveDetectionCost({ cost: 10, multiplier: 0.5 })).toBe(5);
+    expect(resolveDetectionCost({ cost: 2, multiplier: 0.6 })).toBe(1);
     expect(resolveDetectionCost({ cost: 10, multiplier: 1 })).toBe(10);
     expect(resolveDetectionCost({ cost: -10, multiplier: 1 })).toBe(0);
     expect(resolveDetectionCost({ cost: 10, multiplier: Number.NaN })).toBe(10);

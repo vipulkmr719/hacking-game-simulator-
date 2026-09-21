@@ -162,9 +162,7 @@ describe('step', () => {
       expect(result.state.activeMission?.detection).toBe(100);
       expect(result.state.activeMission?.failureReason).toBe('Trace reached 100%.');
       expect(result.state.player.statistics.missionsFailed).toBe(1);
-      expect(result.outputs.map((line) => line.text)).toContain(
-        'MISSION FAILED — trace reached 100%.',
-      );
+      expect(result.outputs.map((line) => line.text)).toContain('════ MISSION FAILED ════');
       expect(result.events).toContainEqual({
         type: 'MISSION_FAILED',
         missionId: 'first-connection',

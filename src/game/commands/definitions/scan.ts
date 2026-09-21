@@ -1,3 +1,4 @@
+import { ACTION_TRACE_COST } from '../../detection/detection';
 import { resolveSession, withSession } from '../../missions/session';
 import { revealHosts } from '../../simulation/discovery';
 import { formatTable } from '../../terminal/format';
@@ -20,7 +21,7 @@ export const scanCommand: CommandSpec = {
   requiresActiveMission: true,
   requiredAccessLevel: 'none',
   requiredToolId: 'basic-scanner',
-  detectionCost: 8,
+  detectionCost: ACTION_TRACE_COST.scan,
   run: (context) => {
     const session = resolveSession(context.state, context.deps);
     if (session === null) {

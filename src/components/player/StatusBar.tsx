@@ -1,17 +1,28 @@
 import { formatTrace } from '../../game/detection/detection';
+import type { ThreatLevel } from '../../game/detection/threat';
 import type { GameState } from '../../game/engine';
 
 type View = 'terminal' | 'progression';
 
 interface StatusBarProps {
   readonly state: GameState;
+  /** Supplied by the engine's selector; null when no contract is loaded. */
+  readonly threatLevel: ThreatLevel | null;
   readonly view: View;
   readonly onChangeView: (view: View) => void;
 }
 
-function Stat({ label, value }: { readonly label: string; readonly value: string }) {
+function Stat({
+  label,
+  value,
+  threat,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly threat?: ThreatLevel;
+}) {
   return (
-    <div className="statusbar__stat">
+    <div className="statusbar__stat" data-threat={threat}>
       <span className="statusbar__label">{label}</span>
       <span className="statusbar__value">{value}</span>
     </div>
@@ -23,7 +34,7 @@ const VIEWS: readonly { readonly id: View; readonly label: string }[] = [
   { id: 'progression', label: 'Progression' },
 ];
 
-export function StatusBar({ state, view, onChangeView }: StatusBarProps) {
+export function StatusBar({ state, threatLevel, view, onChangeView }: StatusBarProps) {
   const { player, activeMission } = state;
 
   return (
@@ -41,6 +52,7 @@ export function StatusBar({ state, view, onChangeView }: StatusBarProps) {
         <Stat
           label="TRACE"
           value={activeMission === null ? '\u2014' : formatTrace(activeMission.detection).slice(7)}
+          {...(threatLevel === null ? {} : { threat: threatLevel })}
         />
       </div>
 

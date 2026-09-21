@@ -11,6 +11,7 @@
  * exhaustive switches (see conditions.ts / effects.ts in Phase 3), so adding a
  * variant without handling it is a compile error rather than a runtime hole.
  */
+import type { ThreatLevel } from '../detection/threat';
 import type { MissionReward } from '../rewards/types';
 import type { AccessLevel, SimulatedTarget } from '../simulation/types';
 
@@ -136,6 +137,10 @@ export interface MissionRuntimeState {
   readonly discovered: DiscoveredState;
   /** Failed attempts per puzzle, keyed by puzzle id. */
   readonly puzzleAttempts: Readonly<Record<string, number>>;
+  /** Stealth actions spent this contract, capped by the detection rules. */
+  readonly stealthActionsUsed: number;
+  /** Threat band at the end of the last command, for spotting escalation. */
+  readonly threatLevel: ThreatLevel;
   /**
    * Objectives completed by a `complete-objective` effect rather than by their
    * own conditions. Held separately because objective completion is derived
@@ -158,6 +163,8 @@ export function createMissionRuntimeState(mission: Mission): MissionRuntimeState
     })),
     discovered: EMPTY_DISCOVERED_STATE,
     puzzleAttempts: {},
+    stealthActionsUsed: 0,
+    threatLevel: 'safe',
     forcedObjectiveIds: [],
     failureReason: null,
   };

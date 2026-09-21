@@ -75,10 +75,12 @@ describe('command registry', () => {
       'logs',
       'missions',
       'ports',
+      'retry',
       'scan',
       'solve',
       'start',
       'status',
+      'wait',
     ]);
   });
 });

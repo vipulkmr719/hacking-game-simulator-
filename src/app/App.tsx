@@ -21,13 +21,22 @@ export function App() {
     submit(`buy ${toolId}`);
   };
 
+  const retryContract = () => {
+    submit('retry');
+  };
+
   return (
     <div className="app">
-      <StatusBar state={state} view={view} onChangeView={setView} />
+      <StatusBar
+        state={state}
+        threatLevel={mission?.threatLevel ?? null}
+        view={view}
+        onChangeView={setView}
+      />
       <main className="app__main" id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`}>
         {view === 'terminal' ? (
           <>
-            <MissionPanel mission={mission} />
+            <MissionPanel mission={mission} onRetry={retryContract} />
             <Terminal
               lines={lines}
               onSubmit={submit}

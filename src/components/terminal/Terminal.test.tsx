@@ -148,7 +148,7 @@ describe('terminal component', () => {
 
     const log = screen.getByRole('log');
     expect(log.textContent).toContain('perimeter-gateway');
-    expect(within(screen.getByRole('banner')).getByText('19%')).toBeDefined();
+    expect(within(screen.getByRole('banner')).getByText('15%')).toBeDefined();
   });
 
   it('drives the mission panel from engine state alone', () => {

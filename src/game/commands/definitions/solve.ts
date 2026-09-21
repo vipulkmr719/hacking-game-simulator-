@@ -1,6 +1,9 @@
 import { resolveSession, withSession } from '../../missions/session';
 import { solvePuzzle } from '../../simulation/discovery';
-import { applyDetectionDelta } from '../../detection/detection';
+import {
+  PUZZLE_FAILURE_TRACE_COST,
+  applyDetectionDelta,
+} from '../../detection/detection';
 import { error, info, output, success, system, warning } from '../../terminal/types';
 import type { CommandSpec } from '../types';
 
@@ -75,16 +78,19 @@ export const solveCommand: CommandSpec = {
     }
 
     const remaining = puzzle.attemptsAllowed - used - 1;
+    // A puzzle may set its own cost; otherwise the published default applies.
+    const cost =
+      puzzle.failureDetectionCost > 0 ? puzzle.failureDetectionCost : PUZZLE_FAILURE_TRACE_COST;
     return {
       state: withSession(context.state, {
         ...runtime,
         puzzleAttempts: { ...runtime.puzzleAttempts, [puzzle.id]: used + 1 },
-        detection: applyDetectionDelta(runtime.detection, puzzle.failureDetectionCost),
+        detection: applyDetectionDelta(runtime.detection, cost),
       }),
       outputs: [
         warning('Incorrect.'),
         output(`  Attempts left  ${String(remaining)}`),
-        output(`  Trace cost     ${String(puzzle.failureDetectionCost)}%`),
+        output(`  Trace cost     ${String(cost)}%`),
         ...(puzzle.hint === null ? [] : [info(`  Hint: ${puzzle.hint}`)]),
       ],
       events: [],

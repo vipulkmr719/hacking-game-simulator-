@@ -1,3 +1,4 @@
+import { ACTION_TRACE_COST } from '../../detection/detection';
 import { resolveSession, withSession } from '../../missions/session';
 import { findServiceById, resolveDiscoveredPorts, revealService } from '../../simulation/discovery';
 import { formatDetail } from '../../terminal/format';
@@ -14,7 +15,7 @@ export const analyzeCommand: CommandSpec = {
   requiresActiveMission: true,
   requiredAccessLevel: 'none',
   requiredToolId: 'basic-scanner',
-  detectionCost: 6,
+  detectionCost: ACTION_TRACE_COST.analyze,
   run: (context) => {
     const session = resolveSession(context.state, context.deps);
     const [token] = context.args;

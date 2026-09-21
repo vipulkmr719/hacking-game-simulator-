@@ -1,7 +1,10 @@
+import {
+  ACTION_TRACE_COST,
+  applyDetectionDelta,
+} from '../../detection/detection';
 import { resolveSession, withSession } from '../../missions/session';
 import { resolveHost } from '../../simulation/discovery';
 import { accessRank, meetsAccessLevel } from '../../simulation/types';
-import { applyDetectionDelta } from '../../detection/detection';
 import { error, info, output, success, system } from '../../terminal/types';
 import type { CommandSpec } from '../types';
 
@@ -22,7 +25,7 @@ export const connectCommand: CommandSpec = {
   requiresActiveMission: true,
   requiredAccessLevel: 'none',
   requiredToolId: null,
-  detectionCost: 5,
+  detectionCost: ACTION_TRACE_COST.connect,
   run: (context) => {
     const session = resolveSession(context.state, context.deps);
     const [token] = context.args;

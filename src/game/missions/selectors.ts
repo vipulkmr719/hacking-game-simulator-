@@ -5,6 +5,9 @@
  * objective is done, whether the player can extract, why a mission is locked —
  * is computed here, so no rule is ever duplicated inside a component.
  */
+import { STEALTH_ACTIONS_PER_CONTRACT } from '../detection/detection';
+import { threatBandFor } from '../detection/threat';
+import type { ThreatLevel } from '../detection/threat';
 import type { EngineDeps } from '../deps';
 import type { GameState } from '../state/types';
 import type { AccessLevel } from '../simulation/types';
@@ -28,10 +31,15 @@ export interface ActiveMissionView {
   readonly briefing: string;
   readonly status: MissionStatus;
   readonly detection: number;
+  readonly threatLevel: ThreatLevel;
+  readonly threatLabel: string;
+  readonly threatDescription: string;
+  readonly stealthActionsLeft: number;
   readonly accessLevel: AccessLevel;
   readonly objectives: readonly ObjectiveView[];
   readonly readyToExtract: boolean;
   readonly outstandingCount: number;
+  readonly failed: boolean;
   readonly failureReason: string | null;
 }
 
@@ -55,6 +63,7 @@ export function selectActiveMission(
   }
 
   const { mission, runtime } = session;
+  const band = threatBandFor(runtime.detection);
 
   return {
     id: mission.id,
@@ -64,6 +73,10 @@ export function selectActiveMission(
     briefing: mission.briefing,
     status: runtime.status,
     detection: runtime.detection,
+    threatLevel: band.level,
+    threatLabel: band.label,
+    threatDescription: band.description,
+    stealthActionsLeft: Math.max(0, STEALTH_ACTIONS_PER_CONTRACT - runtime.stealthActionsUsed),
     accessLevel: runtime.accessLevel,
     objectives: mission.objectives.map((objective) => ({
       id: objective.id,
@@ -73,6 +86,7 @@ export function selectActiveMission(
     })),
     readyToExtract: canExtract(mission, runtime),
     outstandingCount: outstandingObjectives(mission, runtime).length,
+    failed: runtime.status === 'failed',
     failureReason: runtime.failureReason,
   };
 }

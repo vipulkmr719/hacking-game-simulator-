@@ -190,7 +190,9 @@ describe('mission failure', () => {
     crankTrace();
     const out = text(run('scan'));
 
-    expect(out).toContain('MISSION FAILED — trace reached 100%.');
+    expect(out).toContain('════ MISSION FAILED ════');
+    expect(out).toContain('Trace reached 100%. The target resolved your origin.');
+    expect(out).toContain('Run "retry" to run the contract again from a clean slate.');
     expect(state.activeMission?.status).toBe('failed');
     expect(state.activeMission?.failureReason).toBe('Trace reached 100%.');
     expect(state.player.statistics.missionsFailed).toBe(1);

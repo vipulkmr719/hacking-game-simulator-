@@ -13,6 +13,8 @@
 import type { GameAction } from '../actions';
 import { evaluateAchievements } from '../achievements/engine';
 import { applyDetectionDelta, isTraceCritical, resolveDetectionCost } from '../detection/detection';
+import { drawSecurityEvent, formatSecurityEvent } from '../detection/securityEvents';
+import { isEscalation, threatBandFor, threatLevelFor } from '../detection/threat';
 import type { CommandSpec } from '../commands/types';
 import type { EngineDeps } from '../deps';
 import type { GameEvent } from '../events';
@@ -21,7 +23,7 @@ import { resolveSession } from '../missions/session';
 import type { MissionRuntimeState } from '../missions/types';
 import type { GameTool } from '../progression/types';
 import { meetsAccessLevel } from '../simulation/types';
-import { error, success, warning, type TerminalLine } from '../terminal/types';
+import { error, info, success, system, warning, type TerminalLine } from '../terminal/types';
 import type { GameState } from './types';
 
 export interface StepResult {
@@ -99,6 +101,74 @@ function withDetection(mission: MissionRuntimeState, delta: number): MissionRunt
   return { ...mission, detection: applyDetectionDelta(mission.detection, delta) };
 }
 
+/**
+ * Reports what the target's security is doing about the current trace.
+ *
+ * Escalating into a higher band always speaks up, because crossing 51% or 76%
+ * changes what the player should do next. Above that, every further rise
+ * speaks up too: at ALERT and CRITICAL, silence would read as safety.
+ * Chatter is drawn from the seeded RNG, so a run's messages are reproducible.
+ */
+function reportThreat(
+  state: GameState,
+  detectionBefore: number,
+  outputs: TerminalLine[],
+  events: GameEvent[],
+): GameState {
+  const runtime = state.activeMission;
+  if (runtime === null) {
+    return state;
+  }
+
+  const previous = runtime.threatLevel;
+  const current = threatLevelFor(runtime.detection);
+  const escalated = isEscalation(previous, current);
+  const rose = runtime.detection > detectionBefore;
+  const tense = current === 'alert' || current === 'critical';
+
+  let next: GameState = {
+    ...state,
+    activeMission: { ...runtime, threatLevel: current },
+  };
+
+  if (escalated) {
+    const band = threatBandFor(runtime.detection);
+    outputs.push(
+      warning(`SECURITY POSTURE → ${band.label}  (${String(runtime.detection)}%)`),
+      info(`  ${band.description}`),
+    );
+    events.push({
+      type: 'THREAT_LEVEL_CHANGED',
+      previous,
+      current,
+      detection: runtime.detection,
+    });
+  } else if (previous !== current) {
+    // De-escalation is quieter, but still worth saying: it is the only
+    // feedback that a stealth action achieved anything.
+    outputs.push(success(`SECURITY POSTURE → ${threatBandFor(runtime.detection).label}`));
+    events.push({
+      type: 'THREAT_LEVEL_CHANGED',
+      previous,
+      current,
+      detection: runtime.detection,
+    });
+  }
+
+  if (escalated || (rose && tense)) {
+    const draw = drawSecurityEvent(next.rng, current);
+    next = { ...next, rng: draw.rng };
+    outputs.push(system(formatSecurityEvent(draw.event)));
+    events.push({
+      type: 'SECURITY_EVENT',
+      level: draw.event.level,
+      message: draw.event.message,
+    });
+  }
+
+  return next;
+}
+
 export function step(state: GameState, action: GameAction, deps: EngineDeps): StepResult {
   const { commandId, args } = action;
   return executeCommandAction(state, commandId, args, deps);
@@ -157,6 +227,7 @@ function executeCommandAction(
   events.push({ type: 'COMMAND_EXECUTED', commandId: spec.id }, ...outcome.events);
 
   let nextState = outcome.state;
+  nextState = reportThreat(nextState, mission?.detection ?? 0, outputs, events);
 
   // Objectives are evaluated centrally so no command has to remember to.
   const session = resolveSession(nextState, deps);
@@ -187,7 +258,11 @@ function executeCommandAction(
     const reason = 'Trace reached 100%.';
     const failed = failMission(resulting, nextState.player, reason);
     nextState = { ...nextState, activeMission: failed.runtime, player: failed.player };
-    outputs.push(warning('MISSION FAILED — trace reached 100%.'));
+    outputs.push(
+      error('════ MISSION FAILED ════'),
+      error('  Trace reached 100%. The target resolved your origin.'),
+      info('  Run "retry" to run the contract again from a clean slate.'),
+    );
     events.push({ type: 'MISSION_FAILED', missionId: resulting.missionId, reason });
   }
 

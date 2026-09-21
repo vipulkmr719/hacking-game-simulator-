@@ -6,6 +6,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createGameDeps, createTrainingGameState } from '../../../data/bootstrap';
+import { ACTION_TRACE_COST } from '../../detection/detection';
 import { executeCommandLine } from '../../engine';
 import type { GameState } from '../../state/types';
 
@@ -48,7 +49,7 @@ describe('scan', () => {
   it('raises the trace meter', () => {
     expect(state.activeMission?.detection).toBe(0);
     run('scan');
-    expect(state.activeMission?.detection).toBe(8);
+    expect(state.activeMission?.detection).toBe(ACTION_TRACE_COST.scan);
   });
 
   it('is idempotent in what it discovers', () => {
@@ -270,7 +271,8 @@ describe('recon chain', () => {
     run('scan');
     run('ports edge-gateway');
     run('analyze 443');
-    // scan 8 + ports 5 + analyze 6
-    expect(state.activeMission?.detection).toBe(19);
+    expect(state.activeMission?.detection).toBe(
+      ACTION_TRACE_COST.scan + ACTION_TRACE_COST.ports + ACTION_TRACE_COST.analyze,
+    );
   });
 });

@@ -6,6 +6,8 @@
  * meter — which keeps those side effects out of the pure engine.
  */
 
+import type { ThreatLevel } from './detection/threat';
+
 export type GameEvent =
   | { readonly type: 'COMMAND_EXECUTED'; readonly commandId: string }
   | { readonly type: 'COMMAND_REJECTED'; readonly commandId: string; readonly reason: string }
@@ -28,6 +30,13 @@ export type GameEvent =
       readonly rewarded: boolean;
     }
   | { readonly type: 'MISSION_FAILED'; readonly missionId: string; readonly reason: string }
+  | {
+      readonly type: 'THREAT_LEVEL_CHANGED';
+      readonly previous: ThreatLevel;
+      readonly current: ThreatLevel;
+      readonly detection: number;
+    }
+  | { readonly type: 'SECURITY_EVENT'; readonly level: ThreatLevel; readonly message: string }
   | { readonly type: 'TOOL_UNLOCKED'; readonly toolId: string; readonly purchased: boolean }
   | { readonly type: 'ACHIEVEMENT_UNLOCKED'; readonly achievementId: string }
   | { readonly type: 'LEVEL_REACHED'; readonly level: number };

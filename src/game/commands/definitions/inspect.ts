@@ -1,3 +1,4 @@
+import { ACTION_TRACE_COST } from '../../detection/detection';
 import { resolveSession, withSession } from '../../missions/session';
 import {
   hostOfService,
@@ -29,7 +30,7 @@ export const inspectCommand: CommandSpec = {
   requiresActiveMission: true,
   requiredAccessLevel: 'none',
   requiredToolId: null,
-  detectionCost: 2,
+  detectionCost: ACTION_TRACE_COST.inspect,
   run: (context): CommandOutcome => {
     const session = resolveSession(context.state, context.deps);
     const [token] = context.args;

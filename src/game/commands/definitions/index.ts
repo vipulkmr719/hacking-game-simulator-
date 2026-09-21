@@ -14,10 +14,12 @@ import { inventoryCommand } from './inventory';
 import { logsCommand } from './logs';
 import { missionsCommand } from './missions';
 import { portsCommand } from './ports';
+import { retryCommand } from './retry';
 import { scanCommand } from './scan';
 import { solveCommand } from './solve';
 import { startCommand } from './start';
 import { statusCommand } from './status';
+import { waitCommand } from './wait';
 
 /**
  * The complete command allowlist.
@@ -34,6 +36,7 @@ export const COMMAND_SPECS: readonly CommandSpec[] = [
   missionsCommand,
   startCommand,
   briefCommand,
+  retryCommand,
   abortCommand,
   scanCommand,
   portsCommand,
@@ -43,6 +46,7 @@ export const COMMAND_SPECS: readonly CommandSpec[] = [
   connectCommand,
   solveCommand,
   downloadCommand,
+  waitCommand,
   escapeCommand,
 ];
 
@@ -65,8 +69,10 @@ export {
   logsCommand,
   missionsCommand,
   portsCommand,
+  retryCommand,
   scanCommand,
   solveCommand,
   startCommand,
   statusCommand,
+  waitCommand,
 };
