@@ -1,0 +1,18 @@
+/**
+ * Engine events.
+ *
+ * `step` reports what happened as data rather than reaching out to do it. The
+ * UI decides how to react — clearing scrollback, playing a sound, animating a
+ * meter — which keeps those side effects out of the pure engine.
+ */
+
+export type GameEvent =
+  | { readonly type: 'COMMAND_EXECUTED'; readonly commandId: string }
+  | { readonly type: 'COMMAND_REJECTED'; readonly commandId: string; readonly reason: string }
+  | { readonly type: 'TERMINAL_CLEARED' }
+  | {
+      readonly type: 'DETECTION_CHANGED';
+      readonly previous: number;
+      readonly current: number;
+    }
+  | { readonly type: 'MISSION_FAILED'; readonly missionId: string; readonly reason: string };

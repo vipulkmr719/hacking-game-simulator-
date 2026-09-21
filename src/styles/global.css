@@ -1,0 +1,275 @@
+/*
+ * Terminal aesthetic: dark, dense, restrained.
+ *
+ * The palette is deliberately muted rather than neon. Players read this screen
+ * continuously, so contrast serves legibility, and color carries meaning
+ * (error, warning, success) instead of decoration.
+ */
+
+:root {
+  --bg: #0b0e13;
+  --panel: #11151c;
+  --panel-raised: #151a23;
+  --border: #1e242e;
+  --text: #c9d1d9;
+  --muted: #7d8590;
+  --accent: #4ec9b0;
+  --success: #7ec699;
+  --warning: #d7ba7d;
+  --error: #e06c75;
+  --system: #61afef;
+
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --radius: 6px;
+  --touch-target: 44px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Layout ------------------------------------------------------------------ */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  /* dvh tracks the visual viewport, so the input stays reachable when a
+     mobile keyboard opens. */
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+.app__main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: var(--space-3);
+}
+
+/* Status bar -------------------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.statusbar__identity {
+  display: flex;
+  flex-direction: column;
+}
+
+.statusbar__title {
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.statusbar__subtitle {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.statusbar__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.statusbar__stat {
+  display: flex;
+  gap: var(--space-1);
+  align-items: baseline;
+  font-size: 0.75rem;
+}
+
+.statusbar__label {
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.statusbar__value {
+  color: var(--accent);
+}
+
+/* Terminal ---------------------------------------------------------------- */
+
+.terminal {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.terminal__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3);
+}
+
+.terminal__output {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal__line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.terminal__line--command {
+  color: var(--text);
+}
+.terminal__line--output {
+  color: var(--text);
+}
+.terminal__line--info {
+  color: var(--muted);
+}
+.terminal__line--success {
+  color: var(--success);
+}
+.terminal__line--warning {
+  color: var(--warning);
+}
+.terminal__line--error {
+  color: var(--error);
+}
+.terminal__line--system {
+  color: var(--system);
+  letter-spacing: 0.06em;
+}
+
+.terminal__input-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border);
+  background: var(--panel-raised);
+}
+
+.terminal__prompt {
+  color: var(--accent);
+  user-select: none;
+}
+
+.terminal__input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  /* 16px stops iOS Safari zooming the viewport on focus. */
+  font-size: 16px;
+}
+
+.terminal__input:focus {
+  outline: none;
+}
+
+.terminal__input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.terminal__input-row:focus-within {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.terminal__send {
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.terminal__send:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.terminal__send:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Larger viewports -------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  .app__main {
+    padding: var(--space-4);
+  }
+
+  .terminal__input {
+    font-size: inherit;
+  }
+
+  /* The Run button is a touch affordance; keyboards have Enter. */
+  .terminal__send {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
