@@ -15,4 +15,16 @@ export type GameEvent =
       readonly previous: number;
       readonly current: number;
     }
+  | { readonly type: 'MISSION_STARTED'; readonly missionId: string }
+  | {
+      readonly type: 'OBJECTIVE_COMPLETED';
+      readonly missionId: string;
+      readonly objectiveId: string;
+      readonly optional: boolean;
+    }
+  | {
+      readonly type: 'MISSION_COMPLETED';
+      readonly missionId: string;
+      readonly rewarded: boolean;
+    }
   | { readonly type: 'MISSION_FAILED'; readonly missionId: string; readonly reason: string };

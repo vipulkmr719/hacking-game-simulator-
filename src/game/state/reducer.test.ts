@@ -6,17 +6,22 @@ import type { CommandRegistry, CommandSpec } from '../commands/types';
 import type { EngineDeps } from '../deps';
 import { createMissionCatalog } from '../missions/catalog';
 import { createMissionRuntimeState } from '../missions/types';
-import { orientationMission } from '../../data/missions/orientation';
+import { firstConnection } from '../../data/missions';
+import { TOOLS } from '../../data/tools';
 import { createInitialGameState } from './initial';
 import { step } from './reducer';
 import type { GameState } from './types';
 
-const catalog = createMissionCatalog([orientationMission]);
-const withRegistry = (registry: CommandRegistry): EngineDeps => ({ registry, missions: catalog });
+const catalog = createMissionCatalog([firstConnection]);
+const withRegistry = (registry: CommandRegistry): EngineDeps => ({
+  registry,
+  missions: catalog,
+  tools: TOOLS,
+});
 const deps = withRegistry(createDefaultRegistry());
 
 function withMission(state: GameState): GameState {
-  return { ...state, activeMission: createMissionRuntimeState(orientationMission) };
+  return { ...state, activeMission: createMissionRuntimeState(firstConnection) };
 }
 
 /** A synthetic command used to exercise the reducer's cross-cutting gates. */
@@ -157,7 +162,7 @@ describe('step', () => {
       expect(result.outputs.at(-1)?.text).toBe('MISSION FAILED — trace reached 100%.');
       expect(result.events).toContainEqual({
         type: 'MISSION_FAILED',
-        missionId: 'orientation',
+        missionId: 'first-connection',
         reason: 'Trace reached 100%.',
       });
     });

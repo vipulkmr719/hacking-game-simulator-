@@ -26,7 +26,18 @@ describe('command autocomplete', () => {
   it('reports every match when a prefix is ambiguous', () => {
     const result = complete('s');
     expect(result.ambiguous).toBe(true);
-    expect(result.matches).toEqual(['scan', 'status']);
+    expect(result.matches).toEqual(['scan', 'solve', 'start', 'status']);
+  });
+
+  it('does not advance when matches share only the typed prefix', () => {
+    // scan / solve / start / status share nothing beyond "s".
+    expect(complete('s').completed).toBeNull();
+  });
+
+  it('narrows to a unique match as more is typed', () => {
+    expect(complete('st').matches).toEqual(['start', 'status']);
+    expect(complete('sta').matches).toEqual(['start', 'status']);
+    expect(complete('star').completed).toBe('start ');
   });
 
   it('fills in the shared prefix of an ambiguous match', () => {

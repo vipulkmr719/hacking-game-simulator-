@@ -126,6 +126,11 @@ export default defineConfig([
               group: ['@/components/*', '@/hooks/*', '@/app/*', '../components/*', '../hooks/*'],
               message: 'The engine must not import from the UI layer.',
             },
+            {
+              group: ['@/data/*', '../data/*', '../../data/*', '../../../data/*'],
+              message:
+                'The engine defines structure; content is injected through EngineDeps. See src/data/bootstrap.ts.',
+            },
           ],
         },
       ],
@@ -166,6 +171,11 @@ export default defineConfig([
       'no-restricted-globals': 'off',
       'no-script-url': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
+      /*
+       * Tests may import the shipped catalog — proving every contract is
+       * winnable means playing the real ones. The node-builtin ban stays.
+       */
+      'no-restricted-imports': ['error', { paths: forbiddenNodeImports }],
     },
   },
 

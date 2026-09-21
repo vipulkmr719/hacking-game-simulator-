@@ -151,6 +151,27 @@ describe('terminal component', () => {
     expect(within(screen.getByRole('banner')).getByText('19%')).toBeDefined();
   });
 
+  it('drives the mission panel from engine state alone', () => {
+    render(<App />);
+    const panel = screen.getByLabelText('Active contract');
+
+    expect(within(panel).getByText('First Connection')).toBeDefined();
+    expect(within(panel).getByText('1/3')).toBeDefined();
+
+    type('scan');
+    expect(within(panel).getByText('2/3')).toBeDefined();
+
+    type('ports edge-gateway');
+    type('analyze 443');
+    expect(within(panel).getByText(/All objectives met/)).toBeDefined();
+  });
+
+  it('shows the panel emptying when the contract is dropped', () => {
+    render(<App />);
+    type('abort');
+    expect(within(screen.getByLabelText('Active contract')).getByText(/No active contract/)).toBeDefined();
+  });
+
   it('ignores blank submissions', () => {
     render(<App />);
     const before = screen.getByRole('log').textContent;

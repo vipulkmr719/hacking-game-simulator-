@@ -70,6 +70,8 @@ body {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
   padding: var(--space-3);
 }
 
@@ -92,7 +94,9 @@ body {
 }
 
 .statusbar__title {
+  margin: 0;
   font-size: 0.8125rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--text);
 }
@@ -123,6 +127,178 @@ body {
 
 .statusbar__value {
   color: var(--accent);
+}
+
+/* Mission panel ----------------------------------------------------------- */
+
+.mission {
+  flex: 0 0 auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  /* The terminal is the primary interface. On a short screen a long contract
+     would otherwise push it down to a few visible lines, so the panel scrolls
+     inside a capped height instead of growing. */
+  max-height: 38vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mission--empty {
+  padding: var(--space-3);
+}
+
+.mission__idle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.mission__idle code,
+.mission__note code {
+  color: var(--accent);
+}
+
+.mission__header {
+  margin-bottom: var(--space-3);
+}
+
+.mission__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mission__client {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.mission__meters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+  margin-bottom: var(--space-3);
+}
+
+.mission__meter {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.mission__meter-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+  color: var(--muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.mission__bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.mission__bar-fill {
+  height: 100%;
+  background: var(--success);
+  transition: width 180ms ease-out;
+}
+
+.mission__bar-fill[data-level='mid'] {
+  background: var(--warning);
+}
+
+.mission__bar-fill[data-level='high'] {
+  background: var(--error);
+}
+
+.mission__facts {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.mission__facts div {
+  display: flex;
+  flex-direction: column;
+}
+
+.mission__facts dt {
+  color: var(--muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.mission__facts dd {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.mission__section-title {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  margin: 0 0 var(--space-2);
+  color: var(--system);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.mission__count {
+  color: var(--muted);
+}
+
+.mission__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission__objective {
+  display: flex;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.mission__check {
+  color: var(--muted);
+}
+
+.mission__objective[data-complete='yes'] .mission__check {
+  color: var(--success);
+}
+
+.mission__objective[data-complete='yes'] .mission__objective-text {
+  color: var(--muted);
+}
+
+.mission__bonus {
+  color: var(--accent);
+  font-size: 0.6875rem;
+}
+
+.mission__note {
+  margin: var(--space-3) 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.mission__note--ready {
+  color: var(--success);
+}
+
+.mission__note--fail {
+  color: var(--error);
 }
 
 /* Terminal ---------------------------------------------------------------- */
@@ -251,6 +427,19 @@ body {
 
   .app__main {
     padding: var(--space-4);
+  }
+
+  /* Wide enough for the contract to sit beside the terminal rather than
+     pushing it down the page. */
+  @media (min-width: 900px) {
+    .app__main {
+      flex-direction: row-reverse;
+    }
+
+    .mission {
+      flex: 0 0 300px;
+      max-height: none;
+    }
   }
 
   .terminal__input {

@@ -1,31 +1,47 @@
 import { createCommandRegistry } from '../registry';
 import type { CommandRegistry, CommandSpec } from '../types';
+import { abortCommand } from './abort';
 import { analyzeCommand } from './analyze';
+import { briefCommand } from './brief';
 import { clearCommand } from './clear';
+import { connectCommand } from './connect';
+import { downloadCommand } from './download';
+import { escapeCommand } from './escape';
 import { helpCommand } from './help';
 import { inspectCommand } from './inspect';
 import { inventoryCommand } from './inventory';
 import { logsCommand } from './logs';
+import { missionsCommand } from './missions';
 import { portsCommand } from './ports';
 import { scanCommand } from './scan';
+import { solveCommand } from './solve';
+import { startCommand } from './start';
 import { statusCommand } from './status';
 
 /**
  * The complete command allowlist.
  *
- * Nothing outside this array can be executed. Infiltration commands (connect,
- * decrypt, download, escape) arrive with the mission engine in a later phase.
+ * Nothing outside this array can be executed. Ordered by the loop a player
+ * follows: orient, take a contract, recon, infiltrate, retrieve, leave.
  */
 export const COMMAND_SPECS: readonly CommandSpec[] = [
   helpCommand,
   clearCommand,
   statusCommand,
   inventoryCommand,
+  missionsCommand,
+  startCommand,
+  briefCommand,
+  abortCommand,
   scanCommand,
   portsCommand,
   analyzeCommand,
   inspectCommand,
   logsCommand,
+  connectCommand,
+  solveCommand,
+  downloadCommand,
+  escapeCommand,
 ];
 
 export function createDefaultRegistry(): CommandRegistry {
@@ -33,13 +49,21 @@ export function createDefaultRegistry(): CommandRegistry {
 }
 
 export {
+  abortCommand,
   analyzeCommand,
+  briefCommand,
   clearCommand,
+  connectCommand,
+  downloadCommand,
+  escapeCommand,
   helpCommand,
   inspectCommand,
   inventoryCommand,
   logsCommand,
+  missionsCommand,
   portsCommand,
   scanCommand,
+  solveCommand,
+  startCommand,
   statusCommand,
 };

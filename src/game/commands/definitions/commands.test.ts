@@ -3,12 +3,13 @@ import { executeCommand } from '../../actions';
 import { createInitialGameState } from '../../state/initial';
 import { step } from '../../state/reducer';
 import { createMissionRuntimeState } from '../../missions/types';
-import { orientationMission } from '../../../data/missions/orientation';
+import { firstConnection } from '../../../data/missions';
+import { TOOLS } from '../../../data/tools';
 import { createMissionCatalog } from '../../missions/catalog';
 import { createDefaultRegistry } from './index';
 
 const registry = createDefaultRegistry();
-const deps = { registry, missions: createMissionCatalog([orientationMission]) };
+const deps = { registry, missions: createMissionCatalog([firstConnection]), tools: TOOLS };
 const run = (command: string, args: readonly string[] = [], state = createInitialGameState()) =>
   step(state, executeCommand(command, args), deps);
 
@@ -70,7 +71,7 @@ describe('status', () => {
     const state = {
       ...createInitialGameState(),
       activeMission: {
-        ...createMissionRuntimeState(orientationMission),
+        ...createMissionRuntimeState(firstConnection),
         detection: 42,
       },
     };

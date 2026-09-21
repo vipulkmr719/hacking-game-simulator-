@@ -1,7 +1,6 @@
 import { formatTable } from '../../terminal/format';
 import { info, output, system } from '../../terminal/types';
 import type { CommandSpec } from '../types';
-import { TOOLS } from '../../../data/tools';
 
 /**
  * Lists gameplay tools.
@@ -22,9 +21,10 @@ export const inventoryCommand: CommandSpec = {
   requiredToolId: null,
   detectionCost: 0,
   run: (context) => {
+    const tools = context.deps.tools;
     const owned = context.state.player.unlockedToolIds;
-    const unlocked = TOOLS.filter((tool) => owned.includes(tool.id));
-    const locked = TOOLS.filter((tool) => !owned.includes(tool.id));
+    const unlocked = tools.filter((tool) => owned.includes(tool.id));
+    const locked = tools.filter((tool) => !owned.includes(tool.id));
 
     const unlockedRows = formatTable(
       unlocked.map((tool) => [tool.name, tool.category, `x${String(tool.detectionMultiplier)}`]),
@@ -41,7 +41,7 @@ export const inventoryCommand: CommandSpec = {
     return {
       state: context.state,
       outputs: [
-        system(`INVENTORY  ${String(unlocked.length)}/${String(TOOLS.length)}`),
+        system(`INVENTORY  ${String(unlocked.length)}/${String(tools.length)}`),
         ...(unlocked.length === 0
           ? [info('  No tools owned.')]
           : unlockedRows.map((row) => output(`  ${row}`))),

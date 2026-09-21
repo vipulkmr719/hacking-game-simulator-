@@ -55,6 +55,8 @@ export interface SimulatedFile {
   readonly encrypted: boolean;
   readonly requiredAccessLevel: AccessLevel;
   readonly contents: string;
+  /** Puzzle that must be solved before an encrypted file can be retrieved. */
+  readonly puzzleId: string | null;
 }
 
 export type LogSeverity = 'info' | 'notice' | 'warning' | 'alert';

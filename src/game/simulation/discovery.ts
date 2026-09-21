@@ -139,3 +139,19 @@ export function revealFiles(
 ): DiscoveredState {
   return { ...discovered, fileIds: mergeIds(discovered.fileIds, fileIds) };
 }
+
+export function retrieveFile(discovered: DiscoveredState, fileId: string): DiscoveredState {
+  return {
+    ...discovered,
+    fileIds: mergeIds(discovered.fileIds, [fileId]),
+    retrievedFileIds: mergeIds(discovered.retrievedFileIds, [fileId]),
+  };
+}
+
+export function solvePuzzle(discovered: DiscoveredState, puzzleId: string): DiscoveredState {
+  return { ...discovered, solvedPuzzleIds: mergeIds(discovered.solvedPuzzleIds, [puzzleId]) };
+}
+
+export function hostOfFile(target: SimulatedTarget, fileId: string): SimulatedHost | null {
+  return target.hosts.find((host) => host.files.some((file) => file.id === fileId)) ?? null;
+}

@@ -1,4 +1,4 @@
-import { createMissionRuntimeState } from '../missions/types';
+import { beginMission } from '../missions/engine';
 import type { Mission } from '../missions/types';
 import { createInitialPlayerState } from '../progression/progression';
 import { createRng } from '../rng';
@@ -20,11 +20,13 @@ export function createInitialGameState(
   seed: number = DEFAULT_SEED,
   startingMission?: Mission,
 ): GameState {
+  const player = createInitialPlayerState();
+
   return {
     schemaVersion: SCHEMA_VERSION,
     rng: createRng(seed),
-    player: createInitialPlayerState(),
+    player,
     activeMission:
-      startingMission === undefined ? null : createMissionRuntimeState(startingMission),
+      startingMission === undefined ? null : beginMission(startingMission, player),
   };
 }

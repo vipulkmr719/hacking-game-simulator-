@@ -100,13 +100,20 @@ export interface ObjectiveRuntimeState {
   readonly complete: boolean;
 }
 
-/** What recon has uncovered so far. Phase 2 populates it. */
+/**
+ * What the player has uncovered.
+ *
+ * `fileIds` are files whose existence is known; `retrievedFileIds` are files
+ * actually pulled down. Objectives distinguish the two, because listing an
+ * archive is not the same as walking out with it.
+ */
 export interface DiscoveredState {
   readonly hostIds: readonly string[];
   readonly portIds: readonly string[];
   readonly serviceIds: readonly string[];
   readonly vulnerabilityIds: readonly string[];
   readonly fileIds: readonly string[];
+  readonly retrievedFileIds: readonly string[];
   readonly solvedPuzzleIds: readonly string[];
 }
 
@@ -116,6 +123,7 @@ export const EMPTY_DISCOVERED_STATE: DiscoveredState = {
   serviceIds: [],
   vulnerabilityIds: [],
   fileIds: [],
+  retrievedFileIds: [],
   solvedPuzzleIds: [],
 };
 
@@ -126,6 +134,15 @@ export interface MissionRuntimeState {
   readonly accessLevel: AccessLevel;
   readonly objectives: readonly ObjectiveRuntimeState[];
   readonly discovered: DiscoveredState;
+  /** Failed attempts per puzzle, keyed by puzzle id. */
+  readonly puzzleAttempts: Readonly<Record<string, number>>;
+  /**
+   * Objectives completed by a `complete-objective` effect rather than by their
+   * own conditions. Held separately because objective completion is derived
+   * from current state, not latched, so a forced completion needs somewhere to
+   * live that a re-evaluation will not discard.
+   */
+  readonly forcedObjectiveIds: readonly string[];
   readonly failureReason: string | null;
 }
 
@@ -140,6 +157,8 @@ export function createMissionRuntimeState(mission: Mission): MissionRuntimeState
       complete: false,
     })),
     discovered: EMPTY_DISCOVERED_STATE,
+    puzzleAttempts: {},
+    forcedObjectiveIds: [],
     failureReason: null,
   };
 }

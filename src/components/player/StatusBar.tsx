@@ -20,7 +20,7 @@ export function StatusBar({ state }: StatusBarProps) {
   return (
     <header className="statusbar">
       <div className="statusbar__identity">
-        <span className="statusbar__title">CYBER HACKER SIMULATOR</span>
+        <h1 className="statusbar__title">CYBER HACKER SIMULATOR</h1>
         <span className="statusbar__subtitle">simulated environment</span>
       </div>
       <div className="statusbar__stats">

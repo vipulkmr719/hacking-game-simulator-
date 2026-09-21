@@ -10,12 +10,14 @@ import type { EngineDeps } from '../game/deps';
 import { createMissionCatalog } from '../game/missions/catalog';
 import { createInitialGameState, DEFAULT_SEED } from '../game/state/initial';
 import type { GameState } from '../game/state/types';
-import { MISSIONS, orientationMission } from './missions';
+import { FIRST_MISSION, MISSIONS } from './missions';
+import { TOOLS } from './tools';
 
 export function createGameDeps(): EngineDeps {
   return {
     registry: createDefaultRegistry(),
     missions: createMissionCatalog(MISSIONS),
+    tools: TOOLS,
   };
 }
 
@@ -27,5 +29,5 @@ export function createGameDeps(): EngineDeps {
  * terminal with no target would be a dead end.
  */
 export function createTrainingGameState(seed: number = DEFAULT_SEED): GameState {
-  return createInitialGameState(seed, orientationMission);
+  return createInitialGameState(seed, FIRST_MISSION);
 }

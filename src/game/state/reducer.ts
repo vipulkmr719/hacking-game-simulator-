@@ -6,18 +6,21 @@
  * arrives through GameState, which is what makes runs reproducible from a seed
  * and lets the whole engine be tested without a DOM.
  *
- * Cross-cutting concerns (permission gates, detection cost, statistics,
- * mission failure) live here rather than in individual commands, so a new
- * command cannot forget to apply them.
+ * Cross-cutting concerns live here rather than in individual commands, so a
+ * new command cannot forget them: permission gates, detection cost, mission
+ * objective evaluation, and mission failure.
  */
 import type { GameAction } from '../actions';
-import { applyDetectionDelta, isTraceCritical } from '../detection/detection';
+import { applyDetectionDelta, isTraceCritical, resolveDetectionCost } from '../detection/detection';
 import type { CommandSpec } from '../commands/types';
 import type { EngineDeps } from '../deps';
 import type { GameEvent } from '../events';
+import { evaluateObjectives, failMission } from '../missions/engine';
+import { resolveSession } from '../missions/session';
 import type { MissionRuntimeState } from '../missions/types';
+import type { GameTool } from '../progression/types';
 import { meetsAccessLevel } from '../simulation/types';
-import { error, warning, type TerminalLine } from '../terminal/types';
+import { error, success, warning, type TerminalLine } from '../terminal/types';
 import type { GameState } from './types';
 
 export interface StepResult {
@@ -39,10 +42,6 @@ function rejected(state: GameState, commandId: string, rejection: Rejection): St
   };
 }
 
-/**
- * Checks a command's requirements against current state.
- * Returns null when the command may run.
- */
 function checkGates(state: GameState, spec: CommandSpec): Rejection | null {
   const mission = state.activeMission;
 
@@ -54,10 +53,7 @@ function checkGates(state: GameState, spec: CommandSpec): Rejection | null {
   }
 
   if (spec.requiredToolId !== null && !state.player.unlockedToolIds.includes(spec.requiredToolId)) {
-    return {
-      line: error(`Requires tool: ${spec.requiredToolId}`),
-      reason: 'missing-tool',
-    };
+    return { line: error(`Requires tool: ${spec.requiredToolId}`), reason: 'missing-tool' };
   }
 
   if (spec.requiredAccessLevel !== 'none') {
@@ -73,18 +69,35 @@ function checkGates(state: GameState, spec: CommandSpec): Rejection | null {
   return null;
 }
 
+/**
+ * The trace a command costs right now.
+ *
+ * A mission's detectionRules override the command's base cost, so a hardened
+ * target can make the same action riskier without changing the command. Owned
+ * tools then scale the result; the best multiplier the player owns applies,
+ * since there is no equip step yet.
+ */
+function detectionCostFor(
+  state: GameState,
+  deps: EngineDeps,
+  spec: CommandSpec,
+  tools: readonly GameTool[],
+): number {
+  const session = resolveSession(state, deps);
+  const rule = session?.mission.detectionRules.find((entry) => entry.commandId === spec.id);
+  const base = rule?.cost ?? spec.detectionCost;
+
+  const owned = tools.filter((tool) => state.player.unlockedToolIds.includes(tool.id));
+  const multiplier =
+    owned.length === 0 ? 1 : Math.min(...owned.map((tool) => tool.detectionMultiplier));
+
+  return resolveDetectionCost({ cost: base, multiplier });
+}
+
 function withDetection(mission: MissionRuntimeState, delta: number): MissionRuntimeState {
   return { ...mission, detection: applyDetectionDelta(mission.detection, delta) };
 }
 
-/**
- * Applies one action.
- *
- * GameAction is a single-member union today, so this dispatches directly.
- * When a second action type lands, destructuring a field that no longer exists
- * on every member becomes a compile error here — which is the prompt to turn
- * this into an exhaustive switch.
- */
 export function step(state: GameState, action: GameAction, deps: EngineDeps): StepResult {
   const { commandId, args } = action;
   return executeCommandAction(state, commandId, args, deps);
@@ -123,10 +136,10 @@ function executeCommandAction(
     },
   };
 
-  // Phase 2 will let a mission's detectionRules override this per command.
+  const cost = detectionCostFor(working, deps, spec, deps.tools);
   const mission = working.activeMission;
-  if (mission !== null && spec.detectionCost !== 0) {
-    const raised = withDetection(mission, spec.detectionCost);
+  if (mission !== null && cost !== 0) {
+    const raised = withDetection(mission, cost);
     if (raised.detection !== mission.detection) {
       events.push({
         type: 'DETECTION_CHANGED',
@@ -142,20 +155,36 @@ function executeCommandAction(
   events.push({ type: 'COMMAND_EXECUTED', commandId: spec.id }, ...outcome.events);
 
   let nextState = outcome.state;
+
+  // Objectives are evaluated centrally so no command has to remember to.
+  const session = resolveSession(nextState, deps);
+  if (session !== null && session.runtime.status === 'active') {
+    const evaluation = evaluateObjectives(session.mission, session.runtime, nextState.player);
+    nextState = { ...nextState, activeMission: evaluation.runtime };
+
+    for (const transition of evaluation.completed) {
+      outputs.push(
+        success(`OBJECTIVE ${transition.optional ? '(bonus) ' : ''}· ${transition.description}`),
+      );
+      events.push({
+        type: 'OBJECTIVE_COMPLETED',
+        missionId: session.mission.id,
+        objectiveId: transition.objectiveId,
+        optional: transition.optional,
+      });
+    }
+
+    // Losing an objective is as important to surface as gaining one.
+    for (const transition of evaluation.regressed) {
+      outputs.push(warning(`OBJECTIVE LOST · ${transition.description}`));
+    }
+  }
+
   const resulting = nextState.activeMission;
   if (resulting !== null && resulting.status === 'active' && isTraceCritical(resulting.detection)) {
     const reason = 'Trace reached 100%.';
-    nextState = {
-      ...nextState,
-      activeMission: { ...resulting, status: 'failed', failureReason: reason },
-      player: {
-        ...nextState.player,
-        statistics: {
-          ...nextState.player.statistics,
-          missionsFailed: nextState.player.statistics.missionsFailed + 1,
-        },
-      },
-    };
+    const failed = failMission(resulting, nextState.player, reason);
+    nextState = { ...nextState, activeMission: failed.runtime, player: failed.player };
     outputs.push(warning('MISSION FAILED — trace reached 100%.'));
     events.push({ type: 'MISSION_FAILED', missionId: resulting.missionId, reason });
   }
