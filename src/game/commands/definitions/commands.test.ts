@@ -4,11 +4,13 @@ import { createInitialGameState } from '../../state/initial';
 import { step } from '../../state/reducer';
 import { createMissionRuntimeState } from '../../missions/types';
 import { orientationMission } from '../../../data/missions/orientation';
+import { createMissionCatalog } from '../../missions/catalog';
 import { createDefaultRegistry } from './index';
 
 const registry = createDefaultRegistry();
+const deps = { registry, missions: createMissionCatalog([orientationMission]) };
 const run = (command: string, args: readonly string[] = [], state = createInitialGameState()) =>
-  step(state, executeCommand(command, args), registry);
+  step(state, executeCommand(command, args), deps);
 
 describe('help', () => {
   it('lists every registered command', () => {

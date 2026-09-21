@@ -66,7 +66,7 @@ describe('parseCommandLine', () => {
   });
 
   it('returns the exact unrecognized-command message', () => {
-    const result = parseCommandLine('nmap acme.local', registry);
+    const result = parseCommandLine('xyzzy plugh', registry);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('unknown-command');
@@ -74,6 +74,29 @@ describe('parseCommandLine', () => {
         'Command not recognized.',
         'Type "help" for available commands.',
       ]);
+    }
+  });
+
+  it('redirects a real tool name to the game equivalent', () => {
+    const result = parseCommandLine('nmap acme.local', registry);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('unknown-command');
+      expect(result.error.lines.map((line) => line.text)).toEqual([
+        '"nmap" is not part of this simulation.',
+        'This simulation uses "scan".',
+        'Type "help" for available commands.',
+      ]);
+    }
+  });
+
+  it('tells a player typing shell commands that this is not a shell', () => {
+    const result = parseCommandLine('sudo rm -rf /', registry);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.lines.map((line) => line.text)).toContain(
+        'This terminal is not a shell. It cannot reach your computer.',
+      );
     }
   });
 

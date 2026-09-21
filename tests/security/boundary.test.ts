@@ -12,11 +12,8 @@ import {
   isDocumentationAddress,
   isFictionalDomain,
 } from '../../src/game/simulation/fictional';
-import {
-  createDefaultRegistry,
-  createInitialGameState,
-  executeCommandLine,
-} from '../../src/game/engine';
+import { executeCommandLine } from '../../src/game/engine';
+import { createGameDeps, createTrainingGameState } from '../../src/data/bootstrap';
 import { stripComments } from './stripComments';
 
 const SOURCE_FILES: Record<string, string> = import.meta.glob('/src/**/*.{ts,tsx}', {
@@ -104,11 +101,23 @@ describe('network guard', () => {
   });
 
   it('stays quiet across a full terminal session', () => {
-    const registry = createDefaultRegistry();
-    let state = createInitialGameState();
-    for (const input of ['help', 'status', 'help clear', 'nmap acme.local', 'clear', 'status']) {
+    const deps = createGameDeps();
+    let state = createTrainingGameState();
+    const script = [
+      'help',
+      'status',
+      'inventory',
+      'scan',
+      'ports edge-gateway',
+      'analyze 443',
+      'inspect edge-gateway',
+      'logs edge-gateway',
+      'nmap acme.local',
+      'clear',
+    ];
+    for (const input of script) {
       expect(() => {
-        state = executeCommandLine(state, input, registry).state;
+        state = executeCommandLine(state, input, deps).state;
       }).not.toThrow();
     }
   });

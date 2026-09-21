@@ -1,18 +1,18 @@
+import { formatTable } from '../../terminal/format';
 import { info, output, system } from '../../terminal/types';
 import type { CommandOutcome, CommandContext, CommandSpec } from '../types';
 
-function pad(text: string, width: number): string {
-  return text.length >= width ? text : text + ' '.repeat(width - text.length);
-}
-
 function describeAll(context: CommandContext): CommandOutcome {
-  const width = Math.max(...context.registry.all.map((spec) => spec.name.length)) + 2;
+  const rows = formatTable(
+    context.deps.registry.all.map((spec) => [spec.name, spec.summary]),
+  );
+
   return {
     state: context.state,
     outputs: [
       system('AVAILABLE COMMANDS'),
-      ...context.registry.all.map((spec) => output(`  ${pad(spec.name, width)}${spec.summary}`)),
-      info('Type "help <command>" for usage.'),
+      ...rows.map((row) => output(`  ${row}`)),
+      info('Type "help <command>" for usage. Tab completes a command name.'),
     ],
     events: [],
   };
@@ -31,6 +31,12 @@ function describeOne(context: CommandContext, spec: CommandSpec): CommandOutcome
   for (const arg of spec.args) {
     const label = arg.required ? 'required' : 'optional';
     lines.push(output(`  <${arg.name}> (${label}) ${arg.description}`));
+  }
+  if (spec.requiredToolId !== null) {
+    lines.push(info(`  Requires tool: ${spec.requiredToolId}`));
+  }
+  if (spec.detectionCost > 0) {
+    lines.push(info(`  Trace cost: ${String(spec.detectionCost)}%`));
   }
 
   return { state: context.state, outputs: lines, events: [] };
@@ -52,7 +58,7 @@ export const helpCommand: CommandSpec = {
     if (topic === undefined) {
       return describeAll(context);
     }
-    const spec = context.registry.resolve(topic);
+    const spec = context.deps.registry.resolve(topic);
     if (spec === null) {
       return {
         state: context.state,

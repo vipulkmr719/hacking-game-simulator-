@@ -57,6 +57,19 @@ export interface SimulatedFile {
   readonly contents: string;
 }
 
+export type LogSeverity = 'info' | 'notice' | 'warning' | 'alert';
+
+/**
+ * A fictional log line. Timestamps are fixed strings in the data, never read
+ * from the clock, so the same target always prints the same log.
+ */
+export interface SimulatedLogEntry {
+  readonly id: string;
+  readonly timestamp: string;
+  readonly severity: LogSeverity;
+  readonly message: string;
+}
+
 export interface SimulatedHost {
   readonly id: string;
   readonly label: string;
@@ -66,6 +79,7 @@ export interface SimulatedHost {
   readonly services: readonly SimulatedService[];
   readonly vulnerabilities: readonly SimulatedVulnerability[];
   readonly files: readonly SimulatedFile[];
+  readonly logs: readonly SimulatedLogEntry[];
 }
 
 export interface SimulatedTarget {

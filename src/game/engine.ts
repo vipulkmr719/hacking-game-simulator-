@@ -7,7 +7,7 @@
  */
 import { executeCommand } from './actions';
 import { parseCommandLine } from './commands/parse';
-import type { CommandRegistry } from './commands/types';
+import type { EngineDeps } from './deps';
 import { step, type StepResult } from './state/reducer';
 import type { GameState } from './state/types';
 import { echo } from './terminal/types';
@@ -15,15 +15,15 @@ import { echo } from './terminal/types';
 export function executeCommandLine(
   state: GameState,
   rawInput: string,
-  registry: CommandRegistry,
+  deps: EngineDeps,
 ): StepResult {
-  const parsed = parseCommandLine(rawInput, registry);
+  const parsed = parseCommandLine(rawInput, deps.registry);
 
   if (!parsed.ok) {
     return { state, outputs: parsed.error.lines, events: [] };
   }
 
-  return step(state, executeCommand(parsed.command.id, parsed.args), registry);
+  return step(state, executeCommand(parsed.command.id, parsed.args), deps);
 }
 
 export { echo };
@@ -31,7 +31,11 @@ export { step } from './state/reducer';
 export type { StepResult } from './state/reducer';
 export { createInitialGameState, DEFAULT_SEED } from './state/initial';
 export { createDefaultRegistry } from './commands/definitions';
+export { createMissionCatalog } from './missions/catalog';
 export { parseCommandLine } from './commands/parse';
+export { completeCommandLine } from './commands/autocomplete';
+export type { CompletionResult } from './commands/autocomplete';
+export type { EngineDeps } from './deps';
 export type { GameState } from './state/types';
 export type { GameEvent } from './events';
 export type { TerminalLine } from './terminal/types';

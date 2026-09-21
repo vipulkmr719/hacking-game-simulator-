@@ -5,20 +5,18 @@
  * lines out — with no component layer involved.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  createDefaultRegistry,
-  createInitialGameState,
-  executeCommandLine,
-} from '../../src/game/engine';
+import { executeCommandLine } from '../../src/game/engine';
 import type { GameState } from '../../src/game/engine';
+import { createGameDeps, createTrainingGameState } from '../../src/data/bootstrap';
+import { createInitialGameState } from '../../src/game/state/initial';
 
-const registry = createDefaultRegistry();
+const deps = createGameDeps();
 
 function play(inputs: readonly string[], seed = 2024) {
   let state: GameState = createInitialGameState(seed);
   const transcript: string[] = [];
   for (const input of inputs) {
-    const result = executeCommandLine(state, input, registry);
+    const result = executeCommandLine(state, input, deps);
     state = result.state;
     transcript.push(...result.outputs.map((line) => line.text));
   }
@@ -34,16 +32,41 @@ describe('terminal flow', () => {
   });
 
   it('rejects an unregistered command with the standard message', () => {
-    const { transcript } = play(['nmap acme.local']);
+    const { transcript } = play(['xyzzy plugh']);
     expect(transcript).toEqual([
       'Command not recognized.',
       'Type "help" for available commands.',
     ]);
   });
 
+  it('never executes a real tool name, and names the game equivalent', () => {
+    const { transcript, state } = play(['nmap acme.local']);
+    expect(transcript).toEqual([
+      '"nmap" is not part of this simulation.',
+      'This simulation uses "scan".',
+      'Type "help" for available commands.',
+    ]);
+    expect(state.player.statistics.commandsExecuted).toBe(0);
+  });
+
   it('does not count an unrecognized command as executed', () => {
     const { state } = play(['nmap acme.local', 'sudo su', 'curl https://example.com']);
     expect(state.player.statistics.commandsExecuted).toBe(0);
+  });
+
+  it('runs the whole recon chain against the training target', () => {
+    let state = createTrainingGameState(7);
+    const transcript: string[] = [];
+    for (const input of ['scan', 'ports edge-gateway', 'analyze 443', 'logs edge-gateway']) {
+      const result = executeCommandLine(state, input, deps);
+      state = result.state;
+      transcript.push(...result.outputs.map((line) => line.text));
+    }
+    const text = transcript.join('\n');
+    expect(text).toContain('3 host(s) mapped.');
+    expect(text).toContain('perimeter-gateway');
+    expect(text).toContain('session token reuse observed from internal range');
+    expect(state.player.statistics.commandsExecuted).toBe(4);
   });
 
   it('produces nothing for blank input', () => {

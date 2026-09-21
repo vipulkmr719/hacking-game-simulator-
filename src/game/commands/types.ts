@@ -6,6 +6,7 @@
  * it is only ever *matched against* the registry's closed set. That is the
  * boundary the whole terminal rests on.
  */
+import type { EngineDeps } from '../deps';
 import type { GameEvent } from '../events';
 import type { AccessLevel } from '../simulation/types';
 import type { GameState } from '../state/types';
@@ -26,8 +27,11 @@ export interface CommandOutcome {
 export interface CommandContext {
   readonly state: GameState;
   readonly args: readonly string[];
-  /** Supplied so commands such as `help` can describe the registry. */
-  readonly registry: CommandRegistry;
+  /**
+   * Content lookups. `help` describes the registry; recon commands resolve the
+   * active mission's target through the catalog.
+   */
+  readonly deps: EngineDeps;
 }
 
 export interface CommandSpec {

@@ -60,6 +60,16 @@ describe('command registry', () => {
 
   it('builds the default registry without collisions', () => {
     const registry = createDefaultRegistry();
-    expect(registry.all.map((command) => command.name)).toEqual(['clear', 'help', 'status']);
+    expect(registry.all.map((command) => command.name)).toEqual([
+      'analyze',
+      'clear',
+      'help',
+      'inspect',
+      'inventory',
+      'logs',
+      'ports',
+      'scan',
+      'status',
+    ]);
   });
 });

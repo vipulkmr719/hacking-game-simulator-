@@ -12,7 +12,8 @@
  */
 import type { GameAction } from '../actions';
 import { applyDetectionDelta, isTraceCritical } from '../detection/detection';
-import type { CommandRegistry, CommandSpec } from '../commands/types';
+import type { CommandSpec } from '../commands/types';
+import type { EngineDeps } from '../deps';
 import type { GameEvent } from '../events';
 import type { MissionRuntimeState } from '../missions/types';
 import { meetsAccessLevel } from '../simulation/types';
@@ -47,8 +48,8 @@ function checkGates(state: GameState, spec: CommandSpec): Rejection | null {
 
   if (spec.requiresActiveMission && mission === null) {
     return {
-      line: error('No active mission. Select a mission first.'),
-      reason: 'no-active-mission',
+      line: error('No active session. No target is loaded.'),
+      reason: 'no-active-session',
     };
   }
 
@@ -84,18 +85,18 @@ function withDetection(mission: MissionRuntimeState, delta: number): MissionRunt
  * on every member becomes a compile error here — which is the prompt to turn
  * this into an exhaustive switch.
  */
-export function step(state: GameState, action: GameAction, registry: CommandRegistry): StepResult {
+export function step(state: GameState, action: GameAction, deps: EngineDeps): StepResult {
   const { commandId, args } = action;
-  return executeCommandAction(state, commandId, args, registry);
+  return executeCommandAction(state, commandId, args, deps);
 }
 
 function executeCommandAction(
   state: GameState,
   commandId: string,
   args: readonly string[],
-  registry: CommandRegistry,
+  deps: EngineDeps,
 ): StepResult {
-  const spec = registry.byId(commandId);
+  const spec = deps.registry.byId(commandId);
   if (spec === null) {
     // Reachable only if a caller hand-builds an action; parsing cannot produce
     // an unregistered id.
@@ -136,7 +137,7 @@ function executeCommandAction(
     working = { ...working, activeMission: raised };
   }
 
-  const outcome = spec.run({ state: working, args, registry });
+  const outcome = spec.run({ state: working, args, deps });
   const outputs: TerminalLine[] = [...outcome.outputs];
   events.push({ type: 'COMMAND_EXECUTED', commandId: spec.id }, ...outcome.events);
 

@@ -1,8 +1,11 @@
 import { useState, type KeyboardEvent, type SyntheticEvent } from 'react';
 
 interface TerminalInputProps {
-  readonly history: readonly string[];
   readonly onSubmit: (value: string) => void;
+  /** Returns the completed line, or null to leave the input as typed. */
+  readonly onComplete: (value: string) => string | null;
+  readonly onRecallOlder: () => string;
+  readonly onRecallNewer: () => string;
 }
 
 /**
@@ -12,35 +15,47 @@ interface TerminalInputProps {
  * break badly on touch keyboards — autocorrect, IME composition and caret
  * placement all misbehave. A native input costs a little visual control and
  * buys working mobile text entry.
+ *
+ * History and completion are decided by pure functions in the engine; this
+ * component only routes keys to them.
  */
-export function TerminalInput({ history, onSubmit }: TerminalInputProps) {
+export function TerminalInput({
+  onSubmit,
+  onComplete,
+  onRecallOlder,
+  onRecallNewer,
+}: TerminalInputProps) {
   const [value, setValue] = useState('');
-  const [historyIndex, setHistoryIndex] = useState<number | null>(null);
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     onSubmit(value);
     setValue('');
-    setHistoryIndex(null);
-  };
-
-  const recall = (direction: -1 | 1) => {
-    if (history.length === 0) {
-      return;
-    }
-    const current = historyIndex ?? history.length;
-    const next = Math.min(history.length, Math.max(0, current + direction));
-    setHistoryIndex(next);
-    setValue(next === history.length ? '' : (history[next] ?? ''));
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      recall(-1);
-    } else if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      recall(1);
+    switch (event.key) {
+      case 'Tab': {
+        // Tab would otherwise move focus out of the terminal.
+        event.preventDefault();
+        const completed = onComplete(value);
+        if (completed !== null) {
+          setValue(completed);
+        }
+        break;
+      }
+      case 'ArrowUp': {
+        event.preventDefault();
+        setValue(onRecallOlder());
+        break;
+      }
+      case 'ArrowDown': {
+        event.preventDefault();
+        setValue(onRecallNewer());
+        break;
+      }
+      default:
+        break;
     }
   };
 

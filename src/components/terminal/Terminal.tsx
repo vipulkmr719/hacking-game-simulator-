@@ -5,11 +5,19 @@ import { TerminalOutput } from './TerminalOutput';
 
 interface TerminalProps {
   readonly lines: readonly TerminalLine[];
-  readonly history: readonly string[];
   readonly onSubmit: (value: string) => void;
+  readonly onComplete: (value: string) => string | null;
+  readonly onRecallOlder: () => string;
+  readonly onRecallNewer: () => string;
 }
 
-export function Terminal({ lines, history, onSubmit }: TerminalProps) {
+export function Terminal({
+  lines,
+  onSubmit,
+  onComplete,
+  onRecallOlder,
+  onRecallNewer,
+}: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,7 +32,12 @@ export function Terminal({ lines, history, onSubmit }: TerminalProps) {
       <div className="terminal__scroll" ref={scrollRef}>
         <TerminalOutput lines={lines} />
       </div>
-      <TerminalInput history={history} onSubmit={onSubmit} />
+      <TerminalInput
+        onSubmit={onSubmit}
+        onComplete={onComplete}
+        onRecallOlder={onRecallOlder}
+        onRecallNewer={onRecallNewer}
+      />
     </section>
   );
 }

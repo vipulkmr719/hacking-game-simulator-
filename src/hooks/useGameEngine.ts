@@ -1,14 +1,18 @@
 /**
  * React binding for the engine.
  *
- * This is the only place the pure engine meets React. Terminal scrollback is
- * held here rather than in GameState: it is presentation, it is bounded, and
- * keeping it out of the engine keeps saves small and `step` pure.
+ * This is the only place the pure engine meets React. Terminal scrollback and
+ * command history are held here rather than in GameState: both are
+ * presentation, both are bounded, and keeping them out means saves stay small
+ * and `step` stays pure.
  */
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { createDefaultRegistry, createInitialGameState, executeCommandLine } from '../game/engine';
-import type { GameEvent, GameState, TerminalLine } from '../game/engine';
-import { echo, info, system } from '../game/terminal/types';
+import { createGameDeps, createTrainingGameState } from '../data/bootstrap';
+import { completeCommandLine, executeCommandLine } from '../game/engine';
+import type { CompletionResult, GameEvent, GameState, TerminalLine } from '../game/engine';
+import { EMPTY_HISTORY, pushHistory, recallNext, recallPrevious } from '../game/terminal/history';
+import type { HistoryState } from '../game/terminal/history';
+import { echo, info, output, system } from '../game/terminal/types';
 
 /**
  * Scrollback cap. The performance rules forbid unbounded DOM growth in the
@@ -19,7 +23,7 @@ export const MAX_TERMINAL_LINES = 500;
 const BOOT_LINES: readonly TerminalLine[] = [
   system('CYBER HACKER SIMULATOR  ·  v0.1.0'),
   info('Simulated environment. No real systems are contacted.'),
-  info('Type "help" to begin.'),
+  info('Type "help" to begin. Tab completes a command.'),
 ];
 
 function clampHistory(lines: readonly TerminalLine[]): TerminalLine[] {
@@ -29,28 +33,33 @@ function clampHistory(lines: readonly TerminalLine[]): TerminalLine[] {
 export interface GameEngineBinding {
   readonly state: GameState;
   readonly lines: readonly TerminalLine[];
-  readonly history: readonly string[];
   readonly submit: (raw: string) => void;
+  readonly complete: (raw: string) => string | null;
+  readonly recallOlder: () => string;
+  readonly recallNewer: () => string;
 }
 
 export function useGameEngine(seed?: number): GameEngineBinding {
-  const registry = useMemo(() => createDefaultRegistry(), []);
-  const [state, setState] = useState<GameState>(() => createInitialGameState(seed));
+  const deps = useMemo(() => createGameDeps(), []);
+  const [state, setState] = useState<GameState>(() => createTrainingGameState(seed));
   const [lines, setLines] = useState<readonly TerminalLine[]>(BOOT_LINES);
-  const [history, setHistory] = useState<readonly string[]>([]);
+  const [history, setHistory] = useState<HistoryState>(EMPTY_HISTORY);
+
+  // Refs keep `submit` and the recall helpers stable, so the input component
+  // does not re-render on every keystroke of unrelated state.
   const stateRef = useRef(state);
   stateRef.current = state;
+  const historyRef = useRef(history);
+  historyRef.current = history;
 
   const submit = useCallback(
     (raw: string) => {
       const trimmed = raw.trim();
-      const result = executeCommandLine(stateRef.current, raw, registry);
+      const result = executeCommandLine(stateRef.current, raw, deps);
       const cleared = result.events.some((event: GameEvent) => event.type === 'TERMINAL_CLEARED');
 
       setState(result.state);
-      if (trimmed !== '') {
-        setHistory((previous) => [...previous, trimmed].slice(-MAX_TERMINAL_LINES));
-      }
+      setHistory((previous) => pushHistory(previous, trimmed));
       setLines((previous) =>
         cleared
           ? []
@@ -61,8 +70,41 @@ export function useGameEngine(seed?: number): GameEngineBinding {
             ]),
       );
     },
-    [registry],
+    [deps],
   );
 
-  return { state, lines, history, submit };
+  const complete = useCallback(
+    (raw: string): string | null => {
+      const result: CompletionResult = completeCommandLine(raw, deps.registry);
+
+      // Several candidates: print them the way a shell would, and fill in as
+      // much of the shared prefix as exists.
+      if (result.ambiguous) {
+        setLines((previous) =>
+          clampHistory([
+            ...previous,
+            echo(`> ${raw.trim()}`),
+            output(`  ${result.matches.join('  ')}`),
+          ]),
+        );
+      }
+
+      return result.completed;
+    },
+    [deps],
+  );
+
+  const recallOlder = useCallback(() => {
+    const recalled = recallPrevious(historyRef.current);
+    setHistory(recalled.state);
+    return recalled.value;
+  }, []);
+
+  const recallNewer = useCallback(() => {
+    const recalled = recallNext(historyRef.current);
+    setHistory(recalled.state);
+    return recalled.value;
+  }, []);
+
+  return { state, lines, submit, complete, recallOlder, recallNewer };
 }

@@ -28,10 +28,18 @@ describe('terminal component', () => {
 
   it('shows the unrecognized-command message for unknown input', () => {
     render(<App />);
-    type('nmap acme.local');
+    type('xyzzy');
     const log = screen.getByRole('log');
     expect(within(log).getByText('Command not recognized.')).toBeDefined();
     expect(within(log).getByText('Type "help" for available commands.')).toBeDefined();
+  });
+
+  it('redirects nmap to the game scan command', () => {
+    render(<App />);
+    type('nmap acme.local');
+    const log = screen.getByRole('log');
+    expect(within(log).getByText('"nmap" is not part of this simulation.')).toBeDefined();
+    expect(within(log).getByText('This simulation uses "scan".')).toBeDefined();
   });
 
   it('clears the input after submitting', () => {
@@ -55,9 +63,9 @@ describe('terminal component', () => {
     expect(within(bar).getByText('500')).toBeDefined();
   });
 
-  it('shows an em dash for trace while no mission is active', () => {
+  it('shows a zeroed trace for the freshly loaded session', () => {
     render(<App />);
-    expect(within(screen.getByRole('banner')).getByText('—')).toBeDefined();
+    expect(within(screen.getByRole('banner')).getByText('0%')).toBeDefined();
   });
 
   it('recalls the previous command with ArrowUp', () => {
@@ -68,6 +76,79 @@ describe('terminal component', () => {
     expect(input.value).toBe('status');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     expect(input.value).toBe('');
+  });
+
+  it('walks back through several commands', () => {
+    render(<App />);
+    type('help');
+    type('status');
+    type('inventory');
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(input.value).toBe('inventory');
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(input.value).toBe('status');
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(input.value).toBe('help');
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input.value).toBe('status');
+  });
+
+  it('does not record blank submissions in history', () => {
+    render(<App />);
+    type('help');
+    type('   ');
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(input.value).toBe('help');
+  });
+
+  it('completes a unique command name on Tab', () => {
+    render(<App />);
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+    fireEvent.change(input, { target: { value: 'inv' } });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    expect(input.value).toBe('inventory ');
+  });
+
+  it('lists candidates and fills the shared prefix on an ambiguous Tab', () => {
+    render(<App />);
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+    fireEvent.change(input, { target: { value: 'i' } });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(input.value).toBe('in');
+    expect(screen.getByRole('log').textContent).toContain('inspect  inventory');
+  });
+
+  it('leaves the input alone when Tab matches nothing', () => {
+    render(<App />);
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+    fireEvent.change(input, { target: { value: 'nmap' } });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    expect(input.value).toBe('nmap');
+  });
+
+  it('runs a completed command end to end', () => {
+    render(<App />);
+    const input = screen.getByLabelText<HTMLInputElement>('Terminal command');
+    fireEvent.change(input, { target: { value: 'sc' } });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    fireEvent.submit(input);
+
+    expect(screen.getByRole('log').textContent).toContain('3 host(s) mapped.');
+  });
+
+  it('runs the recon chain and updates the trace readout', () => {
+    render(<App />);
+    type('scan');
+    type('ports edge-gateway');
+    type('analyze 443');
+
+    const log = screen.getByRole('log');
+    expect(log.textContent).toContain('perimeter-gateway');
+    expect(within(screen.getByRole('banner')).getByText('19%')).toBeDefined();
   });
 
   it('ignores blank submissions', () => {

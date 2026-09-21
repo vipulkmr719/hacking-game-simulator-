@@ -11,6 +11,7 @@
  * input anywhere. Its only output is plain data.
  */
 import { error, type TerminalLine } from '../terminal/types';
+import { hintLines, lookupCommandHint } from './hints';
 import type { CommandRegistry, CommandSpec } from './types';
 
 export const MAX_INPUT_LENGTH = 256;
@@ -91,6 +92,13 @@ export function parseCommandLine(raw: string, registry: CommandRegistry): ParseR
   const [head, ...args] = tokens;
   const command = head === undefined ? null : registry.resolve(head);
   if (command === null) {
+    // The registry has already refused this token. Only then do we check
+    // whether it is something a player might type out of habit, so the
+    // allowlist stays the sole route to execution.
+    const hint = head === undefined ? null : lookupCommandHint(head);
+    if (head !== undefined && hint !== null) {
+      return fail('unknown-command', hintLines(head, hint));
+    }
     return fail('unknown-command', UNKNOWN_COMMAND_LINES);
   }
 
